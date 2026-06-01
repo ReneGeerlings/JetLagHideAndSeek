@@ -210,7 +210,9 @@ export const DraggableMarkers = () => {
                                 ...$hiderMode,
                             });
                         } else {
-                            triggerLocalRefresh.set(Math.random());
+                            triggerLocalRefresh.set(
+                                triggerLocalRefresh.get() + 1,
+                            );
                         }
                     }}
                 />

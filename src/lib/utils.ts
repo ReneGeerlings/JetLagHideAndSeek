@@ -11,6 +11,40 @@ export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
+/**
+ * Punt 2: question keys waren `Math.random()`, wat met snel-achter-elkaar
+ * toevoegen of bij share/import-merge een (kleine) collision-kans heeft.
+ * Deze helper kombineert ms-tijd met een sub-ms-teller voor monotoon
+ * stijgende en (binnen dezelfde browsersessie) gegarandeerd unieke keys.
+ * Blijft een `number` zodat het bestaande schema en oude state werken;
+ * oude `Math.random`-keys liggen in [0,1) en kunnen dus niet collisen
+ * met deze tijd-gebaseerde keys (ms-tijd > 1e12).
+ */
+let _lastKeyTime = 0;
+let _lastKeyCounter = 0;
+export function nextQuestionKey(): number {
+    const now = Date.now();
+    if (now === _lastKeyTime) {
+        _lastKeyCounter = (_lastKeyCounter + 1) % 1000;
+    } else {
+        _lastKeyTime = now;
+        _lastKeyCounter = 0;
+    }
+    return now * 1000 + _lastKeyCounter;
+}
+
+/**
+ * Formatteer een km²-waarde compact voor in de zijbalk. Kleine waarden
+ * (<10 km²) krijgen één decimaal, grotere worden afgerond, en boven de
+ * duizend wordt naar "k" geschaald.
+ */
+export function formatKm2(km2: number): string {
+    if (!Number.isFinite(km2)) return "0";
+    if (km2 < 10) return km2.toFixed(1);
+    if (km2 < 1000) return Math.round(km2).toString();
+    return (km2 / 1000).toFixed(1) + "k";
+}
+
 export const mapToObj = <T, K extends string, V>(
     arr: T[],
     fn: (item: T) => [K, V],

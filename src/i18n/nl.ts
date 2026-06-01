@@ -23,6 +23,10 @@ export const nl: Translations = {
         addQuestion: "Vraag toevoegen",
         starGitHub: "Geef ons een ster op GitHub! Het is gratis :)",
         save: "Opslaan",
+        remainingArea: "Restgebied",
+        eliminated: "Uitgesloten",
+        areaSummaryTooltip:
+            "Geschatte oppervlakte waar de verstopper nog kan zijn, op basis van het huidige speelgebied en de beantwoorde vragen.",
     },
     addQuestionDialog: {
         title: "Vraag toevoegen",
@@ -40,6 +44,9 @@ export const nl: Translations = {
         toastNoValidQuestion: "Geen geldige vraag gevonden op klembord",
     },
     questionCard: {
+        impact: "−{km2} km² ({percent}%)",
+        impactTooltip:
+            "Oppervlakte die deze vraag heeft uitgesloten, ten opzichte van wat nog mogelijk was vóór het antwoord.",
         share: {
             title: "Deel deze vraag!",
             description:
@@ -61,6 +68,13 @@ export const nl: Translations = {
         tutorial: "Tutorial",
         options: "Opties",
         title: "Opties",
+        newGame: "Nieuw spel",
+        newGameDialogTitle: "Nieuw spel beginnen?",
+        newGameDialogDescription:
+            "Dit wist alle vragen, het speelgebied, de stationskeuze en eventuele extra overlays. Taal, API-sleutels en standaard-eenheid blijven staan.",
+        newGameConfirm: "Spel resetten",
+        toastNewGameReady:
+            "Spel gereset. Kies een nieuw speelgebied om te beginnen.",
         copyHidingZone: "Verstopzone kopiëren",
         pasteHidingZone: "Verstopzone plakken",
         defaultUnit: "Standaardeenheid",
@@ -202,6 +216,50 @@ export const nl: Translations = {
         toastCoordinatesCopyError: "Fout bij kopiëren",
         toastPlusCodeCouldNotResolve:
             "Kon locatie voor verkorte code niet bepalen",
+    },
+    overpass: {
+        loadingMapData: "Kaartdata laden...",
+        determiningTentacles: "Tentakel-locaties bepalen...",
+        determiningMatchingZone: "Matching-zone bepalen...",
+        findingTrainLine: "Treinlijn zoeken...",
+        findingTrainLines: "Treinlijnen zoeken...",
+        fetchingCoastline: "Kustlijn-data laden...",
+        determiningHidingPlaces: "Verstopplekken bepalen...",
+        loadFailed: "Kon data van Overpass niet laden: {status} {statusText}",
+        findingAirports: "Vliegvelden zoeken...",
+        findingCities: "Steden zoeken...",
+        findingHighSpeedLines: "Hogesnelheidslijnen zoeken...",
+        findingMatchingLocations: "Matching-locaties zoeken...",
+        findingPlaces: "{kind} zoeken...",
+        findingTrainStations:
+            "Treinstations zoeken. Dit kan even duren. Druk niet op knoppen tijdens dit proces. Geen zorgen, het wordt opgeslagen in de cache.",
+    },
+    matchingErrors: {
+        runtimeError:
+            "Fout bij zoeken van {kind}. Schakel de verstopzone-modus in en kies de Large Game-variant van deze vraag.",
+        tooMany:
+            "Te veel {kind} gevonden ({count}). Schakel de verstopzone-modus in en kies de Large Game-variant van deze vraag.",
+        noBoundary: "Geen grens gevonden voor deze zone",
+        noEnglishName: "Geen Engelse naam gevonden voor deze zone",
+        zonesWithLetter: "zones die beginnen met '{letter}'",
+    },
+    pwa: {
+        updateAvailable: "Er is een nieuwe versie van de app beschikbaar.",
+        reload: "Herladen",
+        later: "Later",
+        offlineReady: "Klaar voor offline gebruik.",
+    },
+    network: {
+        offline: "Offline",
+        offlineTooltip:
+            "Geen netwerk. Gecachete kaarttegels en beantwoorde vragen werken nog; nieuwe Overpass-vragen niet.",
+        backOnline: "Weer online.",
+        goneOffline: "Je bent offline. Gecachete kaartdata werkt nog wel.",
+    },
+    measuringErrors: {
+        noNearby: "Geen {kind} in de buurt gevonden",
+        runtimeError:
+            "Fout bij meten van afstand tot {kind}. Probeer een kleiner gebied of schakel verstopzone-modus in.",
     },
     map: {
         printTooltip: "Afdrukken",

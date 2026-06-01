@@ -18,6 +18,7 @@ import {
     isLoading,
     leafletMapContext,
 } from "@/lib/context";
+import { nextQuestionKey } from "@/lib/utils";
 
 export const AddQuestionDialog = ({
     children,
@@ -118,7 +119,7 @@ export const AddQuestionDialog = ({
                         parsed &&
                         typeof parsed === "object" &&
                         !Array.isArray(parsed)
-                            ? { ...parsed, key: Math.random() }
+                            ? { ...parsed, key: nextQuestionKey() }
                             : parsed;
 
                     return addQuestion(question);

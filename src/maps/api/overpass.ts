@@ -4,6 +4,7 @@ import _ from "lodash";
 import osmtogeojson from "osmtogeojson";
 import { toast } from "react-toastify";
 
+import { tt } from "@/i18n";
 import {
     additionalMapGeoLocations,
     mapGeoLocation,
@@ -25,6 +26,15 @@ import type {
 } from "./types";
 import { CacheType } from "./types";
 
+/**
+ * Punt 8: transiënte Overpass-fouten (overbelaste server, timeout, flaky 4G)
+ * proberen we kort opnieuw voordat we de fallback-host hitten. Alleen status
+ * codes die "probeer later opnieuw"-betekenis hebben triggeren een retry.
+ * 0 = netwerk-fout (cacheFetch valt dan terug op een bare fetch).
+ */
+const RETRY_DELAYS_MS = [800, 2400];
+const RETRYABLE_STATUSES = new Set([0, 408, 425, 429, 500, 502, 503, 504]);
+
 export const getOverpassData = async (
     query: string,
     loadingText?: string,
@@ -33,6 +43,13 @@ export const getOverpassData = async (
     const encodedQuery = encodeURIComponent(query);
     const primaryUrl = `${OVERPASS_API}?data=${encodedQuery}`;
     let response = await cacheFetch(primaryUrl, loadingText, cacheType);
+
+    for (const delay of RETRY_DELAYS_MS) {
+        if (response.ok) break;
+        if (!RETRYABLE_STATUSES.has(response.status)) break;
+        await new Promise((r) => setTimeout(r, delay));
+        response = await cacheFetch(primaryUrl, loadingText, cacheType);
+    }
 
     if (!response.ok) {
         // Try the fallback, but store the result under the primary URL key so future requests are served from cache without needing to fail-over again.
@@ -49,7 +66,10 @@ export const getOverpassData = async (
             response = fallbackResponse;
         } catch {
             toast.error(
-                `Could not load data from Overpass: ${response.status} ${response.statusText}`,
+                tt("overpass.loadFailed", {
+                    status: response.status,
+                    statusText: response.statusText,
+                }),
                 { toastId: "overpass-error" },
             );
             return { elements: [] };
@@ -58,7 +78,10 @@ export const getOverpassData = async (
 
     if (!response.ok) {
         toast.error(
-            `Could not load data from Overpass: ${response.status} ${response.statusText}`,
+            tt("overpass.loadFailed", {
+                status: response.status,
+                statusText: response.statusText,
+            }),
             { toastId: "overpass-error" },
         );
         return { elements: [] };
@@ -81,7 +104,7 @@ export const determineGeoJSON = async (
     const query = `[out:json];${osmType}(${osmId});out geom;`;
     const data = await getOverpassData(
         query,
-        "Loading map data...",
+        tt("overpass.loadingMapData"),
         CacheType.PERMANENT_CACHE,
     );
     const geo = osmtogeojson(data);
@@ -95,7 +118,7 @@ export const determineGeoJSON = async (
 
 export const findTentacleLocations = async (
     question: EncompassingTentacleQuestionSchema,
-    text: string = "Determining tentacle locations...",
+    text: string = tt("overpass.determiningTentacles"),
 ) => {
     const query = `
 [out:json][timeout:25];
@@ -150,7 +173,10 @@ is_in(${latitude}, ${longitude})->.a;
 rel(pivot.a)["admin_level"="${adminLevel}"];
 out geom;
     `;
-    const data = await getOverpassData(query, "Determining matching zone...");
+    const data = await getOverpassData(
+        query,
+        tt("overpass.determiningMatchingZone"),
+    );
     const geo = osmtogeojson(data);
     return geo.features?.[0];
 };
@@ -158,7 +184,7 @@ out geom;
 export const fetchCoastline = async () => {
     const response = await cacheFetch(
         import.meta.env.BASE_URL + "/coastline50.geojson",
-        "Fetching coastline data...",
+        tt("overpass.fetchingCoastline"),
         CacheType.PERMANENT_CACHE,
     );
     const data = await response.json();
@@ -173,7 +199,10 @@ node(${nodeId});
 wr(bn);
 out tags;
 `;
-    const tagData = await getOverpassData(tagQuery, "Finding train line...");
+    const tagData = await getOverpassData(
+        tagQuery,
+        tt("overpass.findingTrainLine"),
+    );
     const query = `
 [out:json];
 (
@@ -197,7 +226,7 @@ ${tagData.elements
 );
 out geom;
 `;
-    const data = await getOverpassData(query, "Finding train lines...");
+    const data = await getOverpassData(query, tt("overpass.findingTrainLines"));
     const geoJSON = osmtogeojson(data);
     const nodes: number[] = [];
     geoJSON.features.forEach((feature: any) => {
@@ -377,7 +406,7 @@ export const nearestToQuestion = async (
                 color: "black",
                 collapsed: false,
             },
-            "Finding matching locations...",
+            tt("overpass.findingMatchingLocations"),
         );
         radius += 30;
     }

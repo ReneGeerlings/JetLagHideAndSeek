@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { defaultUnit } from "@/lib/context";
+import { nextQuestionKey } from "@/lib/utils";
 
 import { ICON_COLORS } from "./api/constants";
 
@@ -408,27 +409,32 @@ export const measuringQuestionSchema = z.union([
 export const questionSchema = z.union([
     z.object({
         id: z.literal("radius"),
-        key: z.number().default(Math.random),
+        key: z.number().default(nextQuestionKey),
+        createdAt: z.string().optional(),
         data: radiusQuestionSchema,
     }),
     z.object({
         id: z.literal("thermometer"),
-        key: z.number().default(Math.random),
+        key: z.number().default(nextQuestionKey),
+        createdAt: z.string().optional(),
         data: thermometerQuestionSchema,
     }),
     z.object({
         id: z.literal("tentacles"),
-        key: z.number().default(Math.random),
+        key: z.number().default(nextQuestionKey),
+        createdAt: z.string().optional(),
         data: tentacleQuestionSchema,
     }),
     z.object({
         id: z.literal("measuring"),
-        key: z.number().default(Math.random),
+        key: z.number().default(nextQuestionKey),
+        createdAt: z.string().optional(),
         data: measuringQuestionSchema,
     }),
     z.object({
         id: z.literal("matching"),
-        key: z.number().default(Math.random),
+        key: z.number().default(nextQuestionKey),
+        createdAt: z.string().optional(),
         data: matchingQuestionSchema,
     }),
 ]);

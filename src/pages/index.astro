@@ -12,7 +12,9 @@ import {
 } from "@/components/ui/sidebar-r";
 import { QuestionSidebar } from "@/components/QuestionSidebar";
 import { ZoneSidebar } from "@/components/ZoneSidebar";
+import { OnlineStatusIndicator } from "@/components/OnlineStatusIndicator";
 import { OptionDrawers } from "@/components/OptionDrawers";
+import { PwaUpdatePrompt } from "@/components/PwaUpdatePrompt";
 import { TutorialDialog } from "@/components/TutorialDialog";
 ---
 
@@ -59,6 +61,8 @@ import { TutorialDialog } from "@/components/TutorialDialog";
             </main>
             <ZoneSidebar client:only />
             <TutorialDialog client:only />
+            <OnlineStatusIndicator client:only />
+            <PwaUpdatePrompt client:only />
         </SidebarProviderR>
     </SidebarProviderL>
 </Layout>

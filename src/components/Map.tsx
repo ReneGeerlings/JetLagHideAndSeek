@@ -19,12 +19,15 @@ import {
     hiderMode,
     isLoading,
     leafletMapContext,
+    mapAreaSummary,
     mapGeoJSON,
     mapGeoLocation,
     permanentOverlay,
     planningModeEnabled,
     polyGeoJSON,
+    questionAreaImpact,
     questionFinishedMapData,
+    type QuestionImpact,
     questions,
     thunderforestApiKey,
     triggerLocalRefresh,
@@ -104,7 +107,7 @@ export const Map = ({ className }: { className?: string }) => {
             for (const question of $questions) {
                 await hiderifyQuestion(question);
             }
-            triggerLocalRefresh.set(Math.random());
+            triggerLocalRefresh.set(triggerLocalRefresh.get() + 1);
         }
 
         map.eachLayer((layer: any) => {
@@ -115,6 +118,18 @@ export const Map = ({ className }: { className?: string }) => {
 
         try {
             const playAreaGeoData = mapGeoData;
+            // Punt 4: oppervlakte van het speelgebied vóór er vragen overheen
+            // gaan; nodig om per-vraag impact (% en km²) te berekenen.
+            let playAreaKm2 = 0;
+            try {
+                if (playAreaGeoData) {
+                    playAreaKm2 = turf.area(playAreaGeoData as any) / 1e6;
+                }
+            } catch {
+                playAreaKm2 = 0;
+            }
+            const impacts: Record<number, QuestionImpact> = {};
+
             mapGeoData = await applyQuestionsToMapGeoData(
                 $questions,
                 mapGeoData,
@@ -125,7 +140,43 @@ export const Map = ({ className }: { className?: string }) => {
                     geoJSONPlane.questionKey = question.key;
                     geoJSONPlane.addTo(map);
                 },
+                (question, before, after) => {
+                    try {
+                        const beforeKm2 = turf.area(before) / 1e6;
+                        const afterKm2 = turf.area(after) / 1e6;
+                        const eliminatedKm2 = Math.max(0, beforeKm2 - afterKm2);
+                        const eliminatedPercentOfPrev =
+                            beforeKm2 > 0
+                                ? (eliminatedKm2 / beforeKm2) * 100
+                                : 0;
+                        impacts[question.key] = {
+                            eliminatedKm2,
+                            eliminatedPercentOfPrev,
+                        };
+                    } catch {
+                        // negeren: area-meting mag de pijplijn nooit breken
+                    }
+                },
             );
+
+            // Restgebied-samenvatting (totaal vs over) zetten voor de UI.
+            try {
+                const remainingKm2 = mapGeoData
+                    ? turf.area(mapGeoData) / 1e6
+                    : 0;
+                if (playAreaKm2 > 0) {
+                    mapAreaSummary.set({
+                        playAreaKm2,
+                        remainingKm2,
+                        remainingPercent: (remainingKm2 / playAreaKm2) * 100,
+                    });
+                } else {
+                    mapAreaSummary.set(null);
+                }
+            } catch {
+                mapAreaSummary.set(null);
+            }
+            questionAreaImpact.set(impacts);
 
             mapGeoData = {
                 type: "FeatureCollection",

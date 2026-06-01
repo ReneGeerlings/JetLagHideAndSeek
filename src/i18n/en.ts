@@ -21,6 +21,10 @@ export const en = {
         addQuestion: "Add Question",
         starGitHub: "Star this on GitHub! It's free :)",
         save: "Save",
+        remainingArea: "Remaining area",
+        eliminated: "Eliminated",
+        areaSummaryTooltip:
+            "Estimated remaining hide-able area, based on the current play zone and answered questions.",
     },
     addQuestionDialog: {
         title: "Add Question",
@@ -38,6 +42,9 @@ export const en = {
         toastNoValidQuestion: "No valid question found in clipboard",
     },
     questionCard: {
+        impact: "−{km2} km² ({percent}%)",
+        impactTooltip:
+            "Area this question eliminated, relative to the area still possible before it was answered.",
         share: {
             title: "Share this Question!",
             description:
@@ -59,6 +66,12 @@ export const en = {
         tutorial: "Tutorial",
         options: "Options",
         title: "Options",
+        newGame: "New game",
+        newGameDialogTitle: "Start a new game?",
+        newGameDialogDescription:
+            "This clears all questions, the play zone, station selection and any custom overlays. Language, API keys and default unit stay the same.",
+        newGameConfirm: "Reset game",
+        toastNewGameReady: "Game reset. Pick a new play zone to start.",
         copyHidingZone: "Copy Hiding Zone",
         pasteHidingZone: "Paste Hiding Zone",
         defaultUnit: "Default Unit",
@@ -198,6 +211,50 @@ export const en = {
         toastPlusCodeCouldNotResolve:
             "Could not resolve location for short code",
     },
+    overpass: {
+        loadingMapData: "Loading map data...",
+        determiningTentacles: "Determining tentacle locations...",
+        determiningMatchingZone: "Determining matching zone...",
+        findingTrainLine: "Finding train line...",
+        findingTrainLines: "Finding train lines...",
+        fetchingCoastline: "Fetching coastline data...",
+        determiningHidingPlaces: "Determining hiding places...",
+        loadFailed: "Could not load data from Overpass: {status} {statusText}",
+        findingAirports: "Finding airports...",
+        findingCities: "Finding cities...",
+        findingHighSpeedLines: "Finding high-speed lines...",
+        findingMatchingLocations: "Finding matching locations...",
+        findingPlaces: "Finding {kind}...",
+        findingTrainStations:
+            "Finding train stations. This may take a while. Do not press any buttons while this is processing. Don't worry, it will be cached.",
+    },
+    matchingErrors: {
+        runtimeError:
+            "Error finding {kind}. Please enable hiding zone mode and switch to the Large Game variation of this question.",
+        tooMany:
+            "Too many {kind} found ({count}). Please enable hiding zone mode and switch to the Large Game variation of this question.",
+        noBoundary: "No boundary found for this zone",
+        noEnglishName: "No English name found for this zone",
+        zonesWithLetter: "zones starting with '{letter}'",
+    },
+    pwa: {
+        updateAvailable: "A new version of the app is available.",
+        reload: "Reload",
+        later: "Later",
+        offlineReady: "Ready to use offline.",
+    },
+    network: {
+        offline: "Offline",
+        offlineTooltip:
+            "No network. Cached map tiles and answered questions still work; new Overpass queries don't.",
+        backOnline: "Back online.",
+        goneOffline: "You are offline. Cached map data still works.",
+    },
+    measuringErrors: {
+        noNearby: "No nearby {kind} found",
+        runtimeError:
+            "Error measuring distance to {kind}. Please try a smaller area or enable hiding zone mode.",
+    },
     map: {
         printTooltip: "Print",
         contextMenu: {
@@ -286,6 +343,6 @@ export const en = {
             hiderCloser: "Hider Closer",
         },
     },
-} as const;
+};
 
 export type Translations = typeof en;

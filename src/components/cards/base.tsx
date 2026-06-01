@@ -31,8 +31,19 @@ import {
     SidebarMenu,
 } from "@/components/ui/sidebar-l";
 import { useTranslation } from "@/i18n";
-import { isLoading, questions } from "@/lib/context";
-import { cn } from "@/lib/utils";
+import { isLoading, questionAreaImpact, questions } from "@/lib/context";
+import { cn, formatKm2 } from "@/lib/utils";
+
+/** Formatteer een ISO-datum compact als "HH:MM" voor inline weergave. */
+const formatTime = (iso?: string): string | null => {
+    if (!iso) return null;
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return null;
+    return d.toLocaleTimeString(undefined, {
+        hour: "2-digit",
+        minute: "2-digit",
+    });
+};
 
 export const QuestionCard = ({
     children,
@@ -59,7 +70,13 @@ export const QuestionCard = ({
     const [isCollapsed, setIsCollapsed] = useState(collapsed ?? false);
     const $questions = useStore(questions);
     const $isLoading = useStore(isLoading);
+    const $impact = useStore(questionAreaImpact);
     const copyButtonRef = useRef<HTMLButtonElement>(null);
+    const impact = $impact[questionKey];
+    const ownQuestion = $questions.find((q) => q.key === questionKey) as
+        | { createdAt?: string }
+        | undefined;
+    const time = formatTime(ownQuestion?.createdAt);
 
     const toggleCollapse = () => {
         if (setCollapsed) {
@@ -87,6 +104,29 @@ export const QuestionCard = ({
                     >
                         {label} {sub && `(${sub})`}
                     </SidebarGroupLabel>
+                    {(impact || time) && (
+                        <div
+                            className="ml-8 -mt-1 mb-1 text-xs text-slate-400 tabular-nums flex gap-2"
+                            title={
+                                impact
+                                    ? t("questionCard.impactTooltip")
+                                    : undefined
+                            }
+                        >
+                            {time && <span>{time}</span>}
+                            {impact && impact.eliminatedKm2 > 0 && (
+                                <span>
+                                    {t("questionCard.impact", {
+                                        km2: formatKm2(impact.eliminatedKm2),
+                                        percent:
+                                            impact.eliminatedPercentOfPrev.toFixed(
+                                                1,
+                                            ),
+                                    })}
+                                </span>
+                            )}
+                        </div>
+                    )}
                     <SidebarGroupContent
                         className={cn(
                             "overflow-hidden transition-all duration-1000 max-h-[100rem]", // 100rem is arbitrary

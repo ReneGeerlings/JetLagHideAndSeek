@@ -4,6 +4,7 @@ import _ from "lodash";
 import osmtogeojson from "osmtogeojson";
 import { toast } from "react-toastify";
 
+import { tt } from "@/i18n";
 import {
     hiderMode,
     mapGeoJSON,
@@ -92,7 +93,7 @@ export const determineMeasuringBoundary = async (
             const features = osmtogeojson(
                 await findPlacesInZone(
                     "[highspeed=yes]",
-                    "Finding high-speed lines...",
+                    tt("overpass.findingHighSpeedLines"),
                     "nwr",
                     "geom",
                 ),
@@ -146,7 +147,7 @@ export const determineMeasuringBoundary = async (
                             (
                                 await findPlacesInZone(
                                     '["aeroway"="aerodrome"]["iata"]', // Only commercial airports have IATA codes,
-                                    "Finding airports...",
+                                    tt("overpass.findingAirports"),
                                 )
                             ).elements,
                             (feature: any) => feature.tags.iata,
@@ -166,7 +167,7 @@ export const determineMeasuringBoundary = async (
                         (
                             await findPlacesInZone(
                                 '[place=city]["population"~"^[1-9]+[0-9]{6}$"]', // The regex is faster than (if:number(t["population"])>1000000)
-                                "Finding cities...",
+                                tt("overpass.findingCities"),
                             )
                         ).elements.map((x: any) =>
                             turf.point([
@@ -192,7 +193,9 @@ export const determineMeasuringBoundary = async (
 
             const data = await findPlacesInZone(
                 `[${LOCATION_FIRST_TAG[location]}=${location}]`,
-                `Finding ${prettifyLocation(location, true).toLowerCase()}...`,
+                tt("overpass.findingPlaces", {
+                    kind: prettifyLocation(location, true).toLowerCase(),
+                }),
                 "nwr",
                 "center",
                 [],
@@ -201,20 +204,19 @@ export const determineMeasuringBoundary = async (
 
             if (data.remark && data.remark.startsWith("runtime error")) {
                 toast.error(
-                    `Error finding ${prettifyLocation(
-                        location,
-                        true,
-                    ).toLowerCase()}. Please enable hiding zone mode and switch to the Large Game variation of this question.`,
+                    tt("measuringErrors.runtimeError", {
+                        kind: prettifyLocation(location, true).toLowerCase(),
+                    }),
                 );
                 return [turf.multiPolygon([])];
             }
 
             if (data.elements.length >= 1000) {
                 toast.error(
-                    `Too many ${prettifyLocation(
-                        location,
-                        true,
-                    ).toLowerCase()} found (${data.elements.length}). Please enable hiding zone mode and switch to the Large Game variation of this question.`,
+                    tt("matchingErrors.tooMany", {
+                        kind: prettifyLocation(location, true).toLowerCase(),
+                        count: data.elements.length,
+                    }),
                 );
                 return [turf.multiPolygon([])];
             }

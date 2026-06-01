@@ -15,10 +15,12 @@ import { useTranslation } from "@/i18n";
 import {
     autoSave,
     isLoading,
+    mapAreaSummary,
     questions,
     save,
     triggerLocalRefresh,
 } from "@/lib/context";
+import { formatKm2 } from "@/lib/utils";
 
 import { AddQuestionDialog } from "./AddQuestionDialog";
 import {
@@ -35,6 +37,7 @@ export const QuestionSidebar = () => {
     const $questions = useStore(questions);
     const $autoSave = useStore(autoSave);
     const $isLoading = useStore(isLoading);
+    const $areaSummary = useStore(mapAreaSummary);
 
     return (
         <Sidebar>
@@ -49,6 +52,27 @@ export const QuestionSidebar = () => {
                     }}
                 />
             </div>
+            {$areaSummary && $areaSummary.playAreaKm2 > 0 && (
+                <div
+                    className="mx-4 mt-2 mb-1 rounded-md bg-slate-800/60 px-3 py-2 text-sm tabular-nums"
+                    title={t("questionSidebar.areaSummaryTooltip")}
+                >
+                    <div className="flex justify-between">
+                        <span className="text-slate-400">
+                            {t("questionSidebar.remainingArea")}
+                        </span>
+                        <span className="font-semibold">
+                            {formatKm2($areaSummary.remainingKm2)} km²
+                        </span>
+                    </div>
+                    <div className="flex justify-between text-xs text-slate-400">
+                        <span>{t("questionSidebar.eliminated")}</span>
+                        <span>
+                            {(100 - $areaSummary.remainingPercent).toFixed(1)}%
+                        </span>
+                    </div>
+                </div>
+            )}
             <SidebarContent>
                 {$questions.map((question) => {
                     switch (question.id) {

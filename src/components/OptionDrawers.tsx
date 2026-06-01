@@ -3,6 +3,17 @@ import { useEffect, useRef, useState } from "react";
 import { toast } from "react-toastify";
 
 import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import {
     Drawer,
     DrawerContent,
     DrawerHeader,
@@ -401,6 +412,64 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                         <div className="overflow-y-scroll max-h-[40vh] flex flex-col items-center gap-4 max-w-[1000px] px-12">
                             <LanguageSwitcher />
                             <Separator className="bg-slate-300 w-[280px]" />
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        className="border-red-500/60 text-red-300 hover:bg-red-500/10"
+                                    >
+                                        {t("optionDrawers.newGame")}
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>
+                                            {t(
+                                                "optionDrawers.newGameDialogTitle",
+                                            )}
+                                        </AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                            {t(
+                                                "optionDrawers.newGameDialogDescription",
+                                            )}
+                                        </AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>
+                                            {t("common.cancel")}
+                                        </AlertDialogCancel>
+                                        <AlertDialogAction
+                                            onClick={() => {
+                                                // Wist alleen spel-state. Taal,
+                                                // API-keys, kaartstijl en
+                                                // standaard-eenheid blijven.
+                                                questions.set([]);
+                                                mapGeoJSON.set(null);
+                                                polyGeoJSON.set(null);
+                                                permanentOverlay.set(null);
+                                                disabledStations.set([]);
+                                                additionalMapGeoLocations.set(
+                                                    [],
+                                                );
+                                                customStations.set([]);
+                                                hiderMode.set(false);
+                                                planningModeEnabled.set(false);
+                                                setOptionsOpen(false);
+                                                toast.success(
+                                                    t(
+                                                        "optionDrawers.toastNewGameReady",
+                                                    ),
+                                                    { autoClose: 2000 },
+                                                );
+                                            }}
+                                            className="bg-red-600 hover:bg-red-700"
+                                        >
+                                            {t("optionDrawers.newGameConfirm")}
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                            <Separator className="bg-slate-300 w-[280px]" />
                             <div className="flex flex-row max-[330px]:flex-col gap-4">
                                 <Button
                                     onClick={() => {
@@ -744,7 +813,8 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                                                 });
                                             } else {
                                                 triggerLocalRefresh.set(
-                                                    Math.random(),
+                                                    triggerLocalRefresh.get() +
+                                                        1,
                                                 );
                                             }
                                         }}

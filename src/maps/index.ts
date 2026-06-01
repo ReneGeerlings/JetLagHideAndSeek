@@ -111,6 +111,17 @@ export async function applyQuestionsToMapGeoData(
         polygon: FeatureCollection | Feature,
         question: any,
     ) => void,
+    /**
+     * Optionele observatie-hook: wordt aangeroepen ná het toepassen van elke
+     * vraag, met de geo-data van vóór en na die vraag. Bedoeld om impact per
+     * vraag te kunnen tonen (km² uitgesloten). Raakt de vraag-logica niet —
+     * fouten in de callback worden gevangen en gelogd, niet doorgegooid.
+     */
+    onStepResult?: (
+        question: Questions[number],
+        before: unknown,
+        after: unknown,
+    ) => void,
 ): Promise<any> {
     for (const question of questions) {
         if (planningModeCallback) {
@@ -126,6 +137,7 @@ export async function applyQuestionsToMapGeoData(
             continue;
         }
 
+        const beforeStep = mapGeoData;
         mapGeoData = await adjustMapGeoDataForQuestion(question, mapGeoData);
 
         if (mapGeoData.type !== "FeatureCollection") {
@@ -133,6 +145,14 @@ export async function applyQuestionsToMapGeoData(
                 type: "FeatureCollection",
                 features: [mapGeoData],
             };
+        }
+
+        if (onStepResult) {
+            try {
+                onStepResult(question, beforeStep, mapGeoData);
+            } catch {
+                // bewust stil — observatie mag de pijplijn nooit breken
+            }
         }
     }
     return mapGeoData;

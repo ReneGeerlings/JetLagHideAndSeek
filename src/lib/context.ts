@@ -103,14 +103,26 @@ export const questions = persistentAtom<Questions>("questions", [], {
     encode: JSON.stringify,
     decode: (x) => questionsSchema.parse(JSON.parse(x)),
 });
-export const addQuestion = (question: DeepPartial<Question>) =>
-    questionModified(questions.get().push(questionSchema.parse(question)));
+export const addQuestion = (question: DeepPartial<Question>) => {
+    // Punt 10: stempel het moment van toevoegen, zodat de zijbalk de tijd
+    // kan tonen en een latere export-functie (naspel) er bij kan. Bestaande
+    // tijdstempels (bv. bij share/import) worden gerespecteerd.
+    const stamped =
+        question && typeof question === "object" && !("createdAt" in question)
+            ? { ...question, createdAt: new Date().toISOString() }
+            : question;
+    return questionModified(
+        questions.get().push(questionSchema.parse(stamped)),
+    );
+};
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const questionModified = (..._: any[]) => {
     if (autoSave.get()) {
         questions.set([...questions.get()]);
     } else {
-        triggerLocalRefresh.set(Math.random());
+        // Punt 3: monotoon stijgende teller is duidelijker en deterministischer
+        // dan Math.random() — voorkomt theoretische "twee gelijke randoms"-stalls.
+        triggerLocalRefresh.set(triggerLocalRefresh.get() + 1);
     }
 };
 
@@ -148,6 +160,30 @@ export const displayHidingZonesStyle = persistentAtom<
     "zones" | "stations" | "no-overlap" | "no-display"
 >("displayHidingZonesStyle", "zones");
 export const questionFinishedMapData = atom<any>(null);
+
+/**
+ * Per vraag (op `key`): hoeveel km² die vraag uitsloot t.o.v. de stand
+ * direct ervoor, plus het percentage van het toen-resterende gebied dat
+ * weg ging. Wordt elke refresh opnieuw gevuld; vragen zonder bijdrage
+ * komen niet voor in de map.
+ */
+export type QuestionImpact = {
+    eliminatedKm2: number;
+    eliminatedPercentOfPrev: number;
+};
+export const questionAreaImpact = atom<Record<number, QuestionImpact>>({});
+
+/**
+ * Samenvatting van de huidige stand: totaal speelgebied (km²), restgebied
+ * (km²), en percentage dat nog overblijft. `null` zolang er nog geen
+ * geldige berekening is gedaan.
+ */
+export type MapAreaSummary = {
+    playAreaKm2: number;
+    remainingKm2: number;
+    remainingPercent: number;
+};
+export const mapAreaSummary = atom<MapAreaSummary | null>(null);
 
 export const trainStations = atom<StationCircle[]>([]);
 onSet(trainStations, ({ newValue }) => {

@@ -18,7 +18,11 @@ export default defineConfig({
             },
         }),
         AstroPWA({
-            registerType: "autoUpdate",
+            // "prompt" zodat het PwaUpdatePrompt-component een toast kan
+            // tonen wanneer er een nieuwe versie beschikbaar is. Zonder
+            // prompt blijven spelers op een oude versie hangen tot een
+            // toevallige tab-refresh.
+            registerType: "prompt",
             manifest: {
                 name: "Jet Lag Verstoppertje Kaartgenerator",
                 short_name: "Verstoppertje",
@@ -66,6 +70,12 @@ export default defineConfig({
                 globPatterns: [
                     "**/*.{js,css,html,svg,png,webp,woff,woff2,json,geojson}",
                 ],
+                // Punt 9: coastline50.geojson is ~3,8 MB en wordt alléén
+                // gebruikt door measuring-vragen met "afstand tot kust".
+                // Buiten de precache halen scheelt ~3,8 MB op de eerste
+                // PWA-install; runtimeCaching (CacheFirst) hieronder zorgt
+                // dat hij na de eerste fetch alsnog blijvend gecached is.
+                globIgnores: ["**/coastline50.geojson"],
                 navigateFallback: "/",
                 navigateFallbackDenylist: [/^\/_/, /^\/api\//],
                 maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
@@ -86,6 +96,25 @@ export default defineConfig({
                             expiration: {
                                 maxEntries: 500,
                                 maxAgeSeconds: 30 * 24 * 60 * 60, // 30 days
+                            },
+                            cacheableResponse: {
+                                statuses: [0, 200],
+                            },
+                        },
+                    },
+                    // Punt 9: zelfde-origin coastline50.geojson — niet meer in
+                    // precache (zie globIgnores), wel CacheFirst zodat 'ie na
+                    // de eerste fetch permanent beschikbaar blijft.
+                    {
+                        urlPattern: ({ url, sameOrigin }) =>
+                            sameOrigin &&
+                            url.pathname.endsWith("/coastline50.geojson"),
+                        handler: "CacheFirst",
+                        options: {
+                            cacheName: "coastline",
+                            expiration: {
+                                maxEntries: 1,
+                                maxAgeSeconds: 180 * 24 * 60 * 60, // ~6 maanden
                             },
                             cacheableResponse: {
                                 statuses: [0, 200],

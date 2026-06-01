@@ -72,6 +72,19 @@ export function translate(
     return interpolate(value ?? key, vars);
 }
 
+/**
+ * Korte non-React helper: vertaalt met de huidige actieve taal. Bedoeld voor
+ * losse modules zoals `src/maps/api/overpass.ts` die geen React-hook kunnen
+ * gebruiken. In React-componenten blijf `useTranslation()` gebruiken zodat
+ * de UI automatisch mee-rendert bij een taalwissel.
+ */
+export function tt(
+    key: TranslationKey,
+    vars?: Record<string, string | number>,
+): string {
+    return translate(language.get(), key, vars);
+}
+
 export function useTranslation() {
     const lang = useStore(language);
     return (
