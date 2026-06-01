@@ -31,6 +31,7 @@ import {
     polyGeoJSON,
     questions,
 } from "@/lib/context";
+import { logger } from "@/lib/logger";
 import { cn } from "@/lib/utils";
 import {
     CacheType,
@@ -76,7 +77,7 @@ export const PlacePicker = ({
                     setLoading(false);
                 })
                 .catch((e) => {
-                    console.log(e);
+                    logger.log(e);
                     setError(true);
                     setLoading(false);
                 });

@@ -17,6 +17,7 @@ import {
     SidebarMenu,
     SidebarMenuItem,
 } from "@/components/ui/sidebar-r";
+import { language, translate, useTranslation } from "@/i18n";
 import {
     animateMapMovements,
     autoZoom,
@@ -37,6 +38,7 @@ import {
     trainStations,
     useCustomStations as useCustomStationsAtom,
 } from "@/lib/context";
+import { logger } from "@/lib/logger";
 import { cn } from "@/lib/utils";
 import {
     BLANK_GEOJSON,
@@ -85,6 +87,7 @@ function _previewText(count: number) {
 let buttonJustClicked = false;
 
 export const ZoneSidebar = () => {
+    const t = useTranslation();
     const $displayHidingZones = useStore(displayHidingZones);
     const $questionFinishedMapData = useStore(questionFinishedMapData);
     const $displayHidingZonesOptions = useStore(displayHidingZonesOptions);
@@ -179,7 +182,7 @@ export const ZoneSidebar = () => {
 
             const needsDefault = !useCustomStations || includeDefaultStations;
             if (needsDefault && $displayHidingZonesOptions.length === 0) {
-                toast.error("At least one place type must be selected");
+                toast.error(t("zoneSidebar.toastAtLeastOneType"));
                 isLoading.set(false);
                 return;
             }
@@ -206,7 +209,7 @@ export const ZoneSidebar = () => {
                 places = osmtogeojson(
                     await findPlacesInZone(
                         $displayHidingZonesOptions[0],
-                        "Finding stations. This may take a while. Do not press any buttons while this is processing. Don't worry, it will be cached.",
+                        t("zoneSidebar.toastFindingStations"),
                         "nwr",
                         "center",
                         $displayHidingZonesOptions.slice(1),
@@ -433,11 +436,10 @@ export const ZoneSidebar = () => {
 
         if ($displayHidingZones && $questionFinishedMapData) {
             initializeHidingZones().catch((error) => {
-                console.log("Error in hiding zone initialization:", error);
-                toast.error(
-                    "An error occurred during hiding zone initialization",
-                    { toastId: "hiding-zone-initialization-error" },
-                );
+                logger.log("Error in hiding zone initialization:", error);
+                toast.error(t("zoneSidebar.toastInitError"), {
+                    toastId: "hiding-zone-initialization-error",
+                });
             });
         }
     }, [
@@ -469,14 +471,13 @@ export const ZoneSidebar = () => {
                     $questionFinishedMapData,
                     $hidingRadius,
                 ).catch((error) => {
-                    console.log("Error in hiding zone selection:", error);
-                    toast.error(
-                        "An error occurred during hiding zone selection",
-                        { toastId: "hiding-zone-selection-error" },
-                    );
+                    logger.log("Error in hiding zone selection:", error);
+                    toast.error(t("zoneSidebar.toastSelectionError"), {
+                        toastId: "hiding-zone-selection-error",
+                    });
                 });
             } else {
-                toast.error("Invalid hiding zone selected", {
+                toast.error(t("zoneSidebar.toastInvalidZone"), {
                     toastId: "hiding-zone-selection-error",
                 });
             }
@@ -504,7 +505,9 @@ export const ZoneSidebar = () => {
     return (
         <Sidebar side="right">
             <div className="flex items-center justify-between">
-                <h2 className="ml-4 mt-4 font-poppins text-2xl">Hiding Zone</h2>
+                <h2 className="ml-4 mt-4 font-poppins text-2xl">
+                    {t("zoneSidebar.title")}
+                </h2>
                 <SidebarCloseIcon
                     className="mr-2 visible md:hidden scale-x-[-1]"
                     onClick={() => {
@@ -519,7 +522,7 @@ export const ZoneSidebar = () => {
                         <SidebarMenu>
                             <SidebarMenuItem className={MENU_ITEM_CLASSNAME}>
                                 <Label className="font-semibold font-poppins">
-                                    Display hiding zones?
+                                    {t("zoneSidebar.displayHidingZones")}
                                 </Label>
                                 <Checkbox
                                     defaultChecked={$displayHidingZones}
@@ -534,13 +537,12 @@ export const ZoneSidebar = () => {
                                     "text-orange-500",
                                 )}
                             >
-                                Warning: This feature can drastically slow down
-                                your device.
+                                {t("zoneSidebar.warningSlow")}
                             </SidebarMenuItem>
                             <SidebarMenuItem className={MENU_ITEM_CLASSNAME}>
                                 <div className="flex flex-row items-center justify-between w-full">
                                     <Label className="font-semibold font-poppins">
-                                        Use custom station list?
+                                        {t("zoneSidebar.useCustomStations")}
                                     </Label>
                                     <Checkbox
                                         checked={useCustomStations}
@@ -554,7 +556,7 @@ export const ZoneSidebar = () => {
                             <SidebarMenuItem className={MENU_ITEM_CLASSNAME}>
                                 <div className="flex flex-row items-center justify-between w-full">
                                     <Label className="font-semibold font-poppins">
-                                        Merge duplicated stations?
+                                        {t("zoneSidebar.mergeDuplicates")}
                                     </Label>
                                     <Checkbox
                                         checked={mergeDuplicates}
@@ -572,13 +574,13 @@ export const ZoneSidebar = () => {
                                     >
                                         <div className="flex flex-col gap-2 w-full">
                                             <Label className="font-semibold font-poppins leading-5">
-                                                Import stations from URL (CSV,
-                                                GeoJSON, KML). This must be a
-                                                raw file link.
+                                                {t("zoneSidebar.importFromUrl")}
                                             </Label>
                                             <div className="flex gap-2">
                                                 <Input
-                                                    placeholder="https://..."
+                                                    placeholder={t(
+                                                        "zoneSidebar.urlPlaceholder",
+                                                    )}
                                                     value={importUrl}
                                                     onChange={(e) =>
                                                         setImportUrl(
@@ -614,7 +616,9 @@ export const ZoneSidebar = () => {
                                                                 0
                                                             ) {
                                                                 toast.error(
-                                                                    "No stations found in provided URL",
+                                                                    t(
+                                                                        "zoneSidebar.toastNoStationsInUrl",
+                                                                    ),
                                                                 );
                                                                 return;
                                                             }
@@ -631,7 +635,7 @@ export const ZoneSidebar = () => {
                                                         }
                                                     }}
                                                 >
-                                                    Import
+                                                    {t("zoneSidebar.import")}
                                                 </button>
                                             </div>
                                             <div>
@@ -669,7 +673,9 @@ export const ZoneSidebar = () => {
                                                                 all.length === 0
                                                             ) {
                                                                 toast.error(
-                                                                    "No stations found in uploaded files",
+                                                                    t(
+                                                                        "zoneSidebar.toastNoStationsInFiles",
+                                                                    ),
                                                                 );
                                                                 return;
                                                             }
@@ -716,8 +722,9 @@ export const ZoneSidebar = () => {
                                             </div>
                                             <div className="flex flex-row items-center justify-between w-full">
                                                 <Label className="font-semibold font-poppins">
-                                                    Include default stations
-                                                    with custom list?
+                                                    {t(
+                                                        "zoneSidebar.includeDefaultStations",
+                                                    )}
                                                 </Label>
                                                 <Checkbox
                                                     checked={
@@ -748,7 +755,9 @@ export const ZoneSidebar = () => {
                                                             )
                                                         }
                                                     >
-                                                        Clear Imported
+                                                        {t(
+                                                            "zoneSidebar.clearImported",
+                                                        )}
                                                     </Button>
                                                 </div>
                                             )}
@@ -760,55 +769,81 @@ export const ZoneSidebar = () => {
                                 <MultiSelect
                                     options={[
                                         {
-                                            label: "Railway Stations",
+                                            label: t(
+                                                "zoneSidebar.placeTypes.railwayStations",
+                                            ),
                                             value: "[railway=station]",
                                         },
                                         {
-                                            label: "Railway Halts",
+                                            label: t(
+                                                "zoneSidebar.placeTypes.railwayHalts",
+                                            ),
                                             value: "[railway=halt]",
                                         },
                                         {
-                                            label: "Railway Stops",
+                                            label: t(
+                                                "zoneSidebar.placeTypes.railwayStops",
+                                            ),
                                             value: "[railway=stop]",
                                         },
                                         {
-                                            label: "Tram Stops",
+                                            label: t(
+                                                "zoneSidebar.placeTypes.tramStops",
+                                            ),
                                             value: "[railway=tram_stop]",
                                         },
                                         {
-                                            label: "Bus Stops",
+                                            label: t(
+                                                "zoneSidebar.placeTypes.busStops",
+                                            ),
                                             value: "[highway=bus_stop]",
                                         },
                                         {
-                                            label: "Ferry Terminals",
+                                            label: t(
+                                                "zoneSidebar.placeTypes.ferryTerminals",
+                                            ),
                                             value: "[amenity=ferry_terminal]",
                                         },
                                         {
-                                            label: "Ferry Platforms (public transport)",
+                                            label: t(
+                                                "zoneSidebar.placeTypes.ferryPlatforms",
+                                            ),
                                             value: "[public_transport=platform][platform=ferry]",
                                         },
                                         {
-                                            label: "Funicular Stations",
+                                            label: t(
+                                                "zoneSidebar.placeTypes.funicularStations",
+                                            ),
                                             value: "[railway=funicular]",
                                         },
                                         {
-                                            label: "Aerialway Stations",
+                                            label: t(
+                                                "zoneSidebar.placeTypes.aerialwayStations",
+                                            ),
                                             value: "[aerialway=station]",
                                         },
                                         {
-                                            label: "Railway Stations Excluding Subways",
+                                            label: t(
+                                                "zoneSidebar.placeTypes.railwayExcludingSubways",
+                                            ),
                                             value: "[railway=station][subway!=yes]",
                                         },
                                         {
-                                            label: "Subway Stations",
+                                            label: t(
+                                                "zoneSidebar.placeTypes.subwayStations",
+                                            ),
                                             value: "[railway=station][subway=yes]",
                                         },
                                         {
-                                            label: "Light Rail Stations",
+                                            label: t(
+                                                "zoneSidebar.placeTypes.lightRailStations",
+                                            ),
                                             value: "[railway=station][light_rail=yes]",
                                         },
                                         {
-                                            label: "Light Rail Halts",
+                                            label: t(
+                                                "zoneSidebar.placeTypes.lightRailHalts",
+                                            ),
                                             value: "[railway=halt][light_rail=yes]",
                                         },
                                     ]}
@@ -816,7 +851,9 @@ export const ZoneSidebar = () => {
                                         displayHidingZonesOptions.set
                                     }
                                     defaultValue={$displayHidingZonesOptions}
-                                    placeholder="Select allowed places"
+                                    placeholder={t(
+                                        "zoneSidebar.selectAllowedPlaces",
+                                    )}
                                     animation={2}
                                     maxCount={3}
                                     modalPopover
@@ -830,7 +867,7 @@ export const ZoneSidebar = () => {
                             </SidebarMenuItem>
                             <SidebarMenuItem>
                                 <Label className="font-semibold font-poppins ml-2">
-                                    Hiding Zone Radius
+                                    {t("zoneSidebar.hidingZoneRadius")}
                                 </Label>
                                 <div
                                     className={cn(
@@ -869,7 +906,7 @@ export const ZoneSidebar = () => {
                                     }}
                                     disabled={$isLoading}
                                 >
-                                    No Display
+                                    {t("zoneSidebar.styleNoDisplay")}
                                 </SidebarMenuItem>
                             )}
                             {$displayHidingZones && stations.length > 0 && (
@@ -881,7 +918,7 @@ export const ZoneSidebar = () => {
                                     }}
                                     disabled={$isLoading}
                                 >
-                                    All Stations
+                                    {t("zoneSidebar.styleAllStations")}
                                 </SidebarMenuItem>
                             )}
                             {$displayHidingZones && stations.length > 0 && (
@@ -893,7 +930,7 @@ export const ZoneSidebar = () => {
                                     }}
                                     disabled={$isLoading}
                                 >
-                                    All Zones
+                                    {t("zoneSidebar.styleAllZones")}
                                 </SidebarMenuItem>
                             )}
                             {$displayHidingZones && stations.length > 0 && (
@@ -907,7 +944,7 @@ export const ZoneSidebar = () => {
                                     }}
                                     disabled={$isLoading}
                                 >
-                                    No Overlap
+                                    {t("zoneSidebar.styleNoOverlap")}
                                 </SidebarMenuItem>
                             )}
                             {$displayHidingZones && hidingZoneModeStationID && (
@@ -918,7 +955,7 @@ export const ZoneSidebar = () => {
                                     )}
                                     disabled={$isLoading}
                                 >
-                                    Current:{" "}
+                                    {t("zoneSidebar.currentLabel")}{" "}
                                     {(() => {
                                         const selected = stations.find(
                                             (x) =>
@@ -960,7 +997,7 @@ export const ZoneSidebar = () => {
                                         }}
                                         disabled={$isLoading}
                                     >
-                                        Clear Disabled
+                                        {t("zoneSidebar.clearDisabled")}
                                     </SidebarMenuItem>
                                 )}
                             {$displayHidingZones && (
@@ -976,7 +1013,7 @@ export const ZoneSidebar = () => {
                                     }}
                                     disabled={$isLoading}
                                 >
-                                    Disable All
+                                    {t("zoneSidebar.disableAll")}
                                 </SidebarMenuItem>
                             )}
                             {$displayHidingZones && (
@@ -989,14 +1026,18 @@ export const ZoneSidebar = () => {
                                     shouldFilter={isStationSearchActive}
                                 >
                                     <CommandInput
-                                        placeholder="Search for a hiding zone..."
+                                        placeholder={t(
+                                            "zoneSidebar.searchHidingZone",
+                                        )}
                                         value={stationSearch}
                                         onValueChange={setStationSearch}
                                         disabled={$isLoading}
                                     />
                                     <CommandList className="max-h-full">
                                         <CommandEmpty>
-                                            No hiding zones found.
+                                            {t(
+                                                "zoneSidebar.noHidingZonesFound",
+                                            )}
                                         </CommandEmpty>
                                         <CommandGroup>
                                             {stations.map((station) => (
@@ -1088,7 +1129,7 @@ export const ZoneSidebar = () => {
                                                         className="bg-slate-600 p-0.5 rounded-md"
                                                         disabled={$isLoading}
                                                     >
-                                                        View
+                                                        {t("common.view")}
                                                     </button>
                                                 </CommandItem>
                                             ))}
@@ -1381,9 +1422,7 @@ async function selectionProcess(
     }
 
     if (_.isEqual(mapData, BLANK_GEOJSON)) {
-        toast.warning(
-            "The hider cannot be in this hiding zone. This wasn't eliminated on the sidebar as its absence was caused by multiple criteria.",
-        );
+        toast.warning(translate(language.get(), "zoneSidebar.cannotBeInZone"));
     }
 
     showGeoJSON(mapData);

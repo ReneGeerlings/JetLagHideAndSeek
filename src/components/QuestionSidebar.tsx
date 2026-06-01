@@ -11,6 +11,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from "@/components/ui/sidebar-l";
+import { useTranslation } from "@/i18n";
 import {
     autoSave,
     isLoading,
@@ -29,6 +30,7 @@ import {
 } from "./QuestionCards";
 
 export const QuestionSidebar = () => {
+    const t = useTranslation();
     useStore(triggerLocalRefresh);
     const $questions = useStore(questions);
     const $autoSave = useStore(autoSave);
@@ -37,7 +39,9 @@ export const QuestionSidebar = () => {
     return (
         <Sidebar>
             <div className="flex items-center justify-between">
-                <h2 className="ml-4 mt-4 font-poppins text-2xl">Questions</h2>
+                <h2 className="ml-4 mt-4 font-poppins text-2xl">
+                    {t("questionSidebar.title")}
+                </h2>
                 <SidebarCloseIcon
                     className="mr-2 visible md:hidden"
                     onClick={() => {
@@ -99,20 +103,9 @@ export const QuestionSidebar = () => {
                         <SidebarMenuItem>
                             <AddQuestionDialog>
                                 <SidebarMenuButton disabled={$isLoading}>
-                                    Add Question
+                                    {t("questionSidebar.addQuestion")}
                                 </SidebarMenuButton>
                             </AddQuestionDialog>
-                        </SidebarMenuItem>
-                        <SidebarMenuItem>
-                            <a
-                                href="https://github.com/taibeled/JetLagHideAndSeek"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                <SidebarMenuButton className="bg-emerald-600 transition-colors">
-                                    Star this on GitHub! It&apos;s free :)
-                                </SidebarMenuButton>
-                            </a>
                         </SidebarMenuItem>
                         {!$autoSave && (
                             <SidebarMenuItem>
@@ -121,7 +114,7 @@ export const QuestionSidebar = () => {
                                     onClick={save}
                                     disabled={$isLoading}
                                 >
-                                    Save
+                                    {t("questionSidebar.save")}
                                 </SidebarMenuButton>
                             </SidebarMenuItem>
                         )}

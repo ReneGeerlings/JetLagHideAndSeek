@@ -11,6 +11,7 @@ import {
     DialogTrigger,
 } from "@/components/ui/dialog";
 import { SidebarMenuButton } from "@/components/ui/sidebar-l";
+import { useTranslation } from "@/i18n";
 import {
     addQuestion,
     defaultCustomQuestions,
@@ -23,6 +24,7 @@ export const AddQuestionDialog = ({
 }: {
     children: React.ReactNode;
 }) => {
+    const t = useTranslation();
     const $isLoading = useStore(isLoading);
     const [open, setOpen] = React.useState(false);
 
@@ -104,7 +106,7 @@ export const AddQuestionDialog = ({
 
     const runPasteQuestion = async () => {
         if (!navigator || !navigator.clipboard) {
-            toast.error("Clipboard API not supported in your browser");
+            toast.error(t("addQuestionDialog.toastClipboardUnsupported"));
             return false;
         }
 
@@ -122,9 +124,9 @@ export const AddQuestionDialog = ({
                     return addQuestion(question);
                 }),
                 {
-                    pending: "Reading from clipboard",
-                    success: "Question added from clipboard!",
-                    error: "No valid question found in clipboard",
+                    pending: t("addQuestionDialog.toastReadingClipboard"),
+                    success: t("addQuestionDialog.toastQuestionAdded"),
+                    error: t("addQuestionDialog.toastNoValidQuestion"),
                 },
                 { autoClose: 1000 },
             );
@@ -139,9 +141,9 @@ export const AddQuestionDialog = ({
         <Dialog open={open} onOpenChange={setOpen}>
             <DialogTrigger asChild>{children}</DialogTrigger>
             <DialogContent>
-                <DialogTitle>Add Question</DialogTitle>
+                <DialogTitle>{t("addQuestionDialog.title")}</DialogTitle>
                 <DialogDescription>
-                    Select which question type you would like to add.
+                    {t("addQuestionDialog.description")}
                 </DialogDescription>
 
                 <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">
@@ -151,7 +153,7 @@ export const AddQuestionDialog = ({
                         }}
                         disabled={$isLoading}
                     >
-                        Add Radius
+                        {t("addQuestionDialog.addRadius")}
                     </SidebarMenuButton>
                     <SidebarMenuButton
                         onClick={() => {
@@ -159,7 +161,7 @@ export const AddQuestionDialog = ({
                         }}
                         disabled={$isLoading}
                     >
-                        Add Thermometer
+                        {t("addQuestionDialog.addThermometer")}
                     </SidebarMenuButton>
                     <SidebarMenuButton
                         onClick={() => {
@@ -167,7 +169,7 @@ export const AddQuestionDialog = ({
                         }}
                         disabled={$isLoading}
                     >
-                        Add Tentacles
+                        {t("addQuestionDialog.addTentacles")}
                     </SidebarMenuButton>
                     <SidebarMenuButton
                         onClick={() => {
@@ -175,7 +177,7 @@ export const AddQuestionDialog = ({
                         }}
                         disabled={$isLoading}
                     >
-                        Add Matching
+                        {t("addQuestionDialog.addMatching")}
                     </SidebarMenuButton>
                     <SidebarMenuButton
                         onClick={() => {
@@ -183,7 +185,7 @@ export const AddQuestionDialog = ({
                         }}
                         disabled={$isLoading}
                     >
-                        Add Measuring
+                        {t("addQuestionDialog.addMeasuring")}
                     </SidebarMenuButton>
                     <SidebarMenuButton
                         onClick={async () => {
@@ -192,7 +194,7 @@ export const AddQuestionDialog = ({
                         }}
                         disabled={$isLoading}
                     >
-                        Paste Question
+                        {t("addQuestionDialog.pasteQuestion")}
                     </SidebarMenuButton>
                 </div>
             </DialogContent>

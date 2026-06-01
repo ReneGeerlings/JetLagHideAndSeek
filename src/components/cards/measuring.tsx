@@ -12,6 +12,8 @@ import {
     SidebarMenuItem,
 } from "@/components/ui/sidebar-l";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { useTranslation } from "@/i18n";
+import { useSchemaDescription } from "@/i18n/schema";
 import {
     customInitPreference,
     displayHidingZones,
@@ -44,6 +46,8 @@ export const MeasuringQuestionComponent = ({
     sub?: string;
     className?: string;
 }) => {
+    const t = useTranslation();
+    const td = useSchemaDescription();
     useStore(triggerLocalRefresh);
     const $hiderMode = useStore(hiderMode);
     const $questions = useStore(questions);
@@ -52,7 +56,7 @@ export const MeasuringQuestionComponent = ({
     const $isLoading = useStore(isLoading);
     const $customInitPref = useStore(customInitPreference);
     const [customDialogOpen, setCustomDialogOpen] = React.useState(false);
-    const label = `Measuring
+    const label = `${t("cards.measuring.labelPrefix")}
     ${
         $questions
             .filter((q) => q.id === "measuring")
@@ -67,10 +71,7 @@ export const MeasuringQuestionComponent = ({
         case "seven11":
             questionSpecific = (
                 <span className="px-2 text-center text-orange-500">
-                    This question will eliminate hiding zones that don&apos;t
-                    fit the criteria. When you click on a zone, the parts of
-                    that zone that don&apos;t satisfy the criteria will be
-                    eliminated.
+                    {t("cards.measuring.chainNote")}
                 </span>
             );
             break;
@@ -87,8 +88,7 @@ export const MeasuringQuestionComponent = ({
         case "park":
             questionSpecific = (
                 <span className="px-2 text-center text-orange-500">
-                    This question will only influence the map when you click on
-                    a hiding zone in the hiding zone sidebar.
+                    {t("cards.measuring.poiHidingZoneNote")}
                 </span>
             );
             break;
@@ -97,7 +97,7 @@ export const MeasuringQuestionComponent = ({
                 questionSpecific = (
                     <>
                         <p className="px-2 mb-1 text-center text-orange-500">
-                            To modify the measuring question, enable it:
+                            {t("cards.measuring.modifyEnable")}
                             <Checkbox
                                 className="mx-1 my-1"
                                 checked={$drawingQuestionKey === questionKey}
@@ -110,7 +110,7 @@ export const MeasuringQuestionComponent = ({
                                 }}
                                 disabled={!data.drag || $isLoading}
                             />
-                            and use the buttons at the bottom left of the map.
+                            {t("cards.measuring.modifyButtons")}
                         </p>
                         <div className="flex justify-center mb-2">
                             <PresetsDialog
@@ -169,24 +169,27 @@ export const MeasuringQuestionComponent = ({
             />
             <SidebarMenuItem className={MENU_ITEM_CLASSNAME}>
                 <Select
-                    trigger="Measuring Type"
+                    trigger={t("cards.measuring.measuringTypeTrigger")}
                     options={Object.fromEntries(
                         measuringQuestionSchema.options
                             .filter((x) => x.description === NO_GROUP)
                             .flatMap((x) =>
                                 determineUnionizedStrings(x.shape.type),
                             )
-                            .map((x) => [(x._def as any).value, x.description]),
+                            .map((x) => [
+                                (x._def as any).value,
+                                td(x.description ?? ""),
+                            ]),
                     )}
                     groups={measuringQuestionSchema.options
                         .filter((x) => x.description !== NO_GROUP)
                         .map((x) => [
-                            x.description,
+                            td(x.description ?? ""),
                             Object.fromEntries(
                                 determineUnionizedStrings(x.shape.type).map(
                                     (x) => [
                                         (x._def as any).value,
-                                        x.description,
+                                        td(x.description ?? ""),
                                     ],
                                 ),
                             ),
@@ -279,7 +282,7 @@ export const MeasuringQuestionComponent = ({
                         $isLoading && "text-muted-foreground",
                     )}
                 >
-                    Result
+                    {t("cards.common.result")}
                 </Label>
                 <ToggleGroup
                     className="grow"
@@ -293,10 +296,10 @@ export const MeasuringQuestionComponent = ({
                     disabled={!!$hiderMode || !data.drag || $isLoading}
                 >
                     <ToggleGroupItem value="further">
-                        Hider Further
+                        {t("cards.measuring.hiderFurther")}
                     </ToggleGroupItem>
                     <ToggleGroupItem value="closer">
-                        Hider Closer
+                        {t("cards.measuring.hiderCloser")}
                     </ToggleGroupItem>
                 </ToggleGroup>
             </div>

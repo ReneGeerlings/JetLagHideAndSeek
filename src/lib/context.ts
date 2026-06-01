@@ -19,31 +19,60 @@ import {
     type Units,
 } from "@/maps/schema";
 
+const NETHERLANDS_DEFAULT_LOCATION: OpenStreetMap = {
+    geometry: {
+        coordinates: [52.1326, 5.2913],
+        type: "Point",
+    },
+    type: "Feature",
+    properties: {
+        osm_type: "R",
+        osm_id: 47796,
+        extent: [53.7253321, 3.31497114, 50.7503925, 7.0922299],
+        country: "Nederland",
+        osm_key: "place",
+        countrycode: "NL",
+        osm_value: "country",
+        name: "Nederland",
+        type: "country",
+    },
+};
+
 export const mapGeoLocation = persistentAtom<OpenStreetMap>(
     "mapGeoLocation",
-    {
-        geometry: {
-            coordinates: [36.5748441, 139.2394179],
-            type: "Point",
-        },
-        type: "Feature",
-        properties: {
-            osm_type: "R",
-            osm_id: 382313,
-            extent: [45.7112046, 122.7141754, 20.2145811, 154.205541],
-            country: "Japan",
-            osm_key: "place",
-            countrycode: "JP",
-            osm_value: "country",
-            name: "Japan",
-            type: "country",
-        },
-    },
+    NETHERLANDS_DEFAULT_LOCATION,
     {
         encode: JSON.stringify,
         decode: JSON.parse,
     },
 );
+
+// One-time migration: switch the old Japan default to Netherlands, and also
+// repair Netherlands entries from earlier place-picker searches that don't
+// carry an `extent` (so the initial map zoom can fit to the country bbox).
+// Users who deliberately picked Japan or another country will land here too,
+// but the place picker re-finds them in one click.
+if (typeof window !== "undefined") {
+    const MIGRATION_KEY = "defaultMapLocationMigration";
+    if (localStorage.getItem(MIGRATION_KEY) !== "nl-v2") {
+        const current = mapGeoLocation.get();
+        const isOldJapan = current?.properties?.osm_id === 382313;
+        const missingExtent =
+            !current?.properties?.extent ||
+            current.properties.extent.length < 4;
+        if (isOldJapan || missingExtent) {
+            mapGeoLocation.set(NETHERLANDS_DEFAULT_LOCATION);
+            // Stale persisted polygon would override the country bbox at
+            // load — drop it so determineMapBoundaries() re-fetches NL.
+            try {
+                localStorage.removeItem("polyGeoJSON");
+            } catch {
+                // ignore
+            }
+        }
+        localStorage.setItem(MIGRATION_KEY, "nl-v2");
+    }
+}
 
 export const additionalMapGeoLocations = persistentAtom<
     AdditionalMapGeoLocations[]

@@ -27,13 +27,13 @@ import { TutorialDialog } from "@/components/TutorialDialog";
                 >
                     <div class="w-full h-full relative">
                         <div
-                            class="absolute top-[72px] md:top-2 left-2 z-[1030] group-[.fullscreen]:hidden"
+                            class="absolute top-[calc(72px+env(safe-area-inset-top,0px))] md:top-[calc(0.5rem+env(safe-area-inset-top,0px))] left-2 z-[1030] group-[.fullscreen]:hidden"
                             data-tutorial-id="left-sidebar-trigger"
                         >
                             <SidebarTriggerL client:load />
                         </div>
                         <div
-                            class="absolute top-[72px] md:top-2 right-2 z-[1030] group-[.fullscreen]:hidden"
+                            class="absolute top-[calc(72px+env(safe-area-inset-top,0px))] md:top-[calc(0.5rem+env(safe-area-inset-top,0px))] right-2 z-[1030] group-[.fullscreen]:hidden"
                         >
                             <SidebarTriggerR client:load />
                         </div>

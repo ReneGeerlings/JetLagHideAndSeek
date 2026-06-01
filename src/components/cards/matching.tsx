@@ -13,6 +13,8 @@ import {
     SidebarMenuItem,
 } from "@/components/ui/sidebar-l";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { useTranslation } from "@/i18n";
+import { useSchemaDescription } from "@/i18n/schema";
 import {
     customInitPreference,
     displayHidingZones,
@@ -48,6 +50,8 @@ export const MatchingQuestionComponent = ({
     sub?: string;
     className?: string;
 }) => {
+    const t = useTranslation();
+    const td = useSchemaDescription();
     useStore(triggerLocalRefresh);
     const $hiderMode = useStore(hiderMode);
     const $questions = useStore(questions);
@@ -59,7 +63,7 @@ export const MatchingQuestionComponent = ({
     const [pendingCustomType, setPendingCustomType] = React.useState<
         "custom-zone" | "custom-points" | null
     >(null);
-    const label = `Matching
+    const label = `${t("cards.matching.labelPrefix")}
     ${
         $questions
             .filter((q) => q.id === "matching")
@@ -76,17 +80,17 @@ export const MatchingQuestionComponent = ({
                 <>
                     <SidebarMenuItem className={MENU_ITEM_CLASSNAME}>
                         <Select
-                            trigger="OSM Zone"
+                            trigger={t("cards.matching.osmZoneTrigger")}
                             options={{
-                                2: "OSM Zone 2 (Country)",
-                                3: "OSM Zone 3 (region in Japan)",
-                                4: "OSM Zone 4 (prefecture in Japan)",
-                                5: "OSM Zone 5",
-                                6: "OSM Zone 6",
-                                7: "OSM Zone 7",
-                                8: "OSM Zone 8",
-                                9: "OSM Zone 9",
-                                10: "OSM Zone 10",
+                                2: t("cards.matching.osmZone2"),
+                                3: t("cards.matching.osmZone3"),
+                                4: t("cards.matching.osmZone4"),
+                                5: t("cards.matching.osmZone5"),
+                                6: t("cards.matching.osmZone6"),
+                                7: t("cards.matching.osmZone7"),
+                                8: t("cards.matching.osmZone8"),
+                                9: t("cards.matching.osmZone9"),
+                                10: t("cards.matching.osmZone10"),
                             }}
                             value={data.cat.adminLevel.toString()}
                             onValueChange={(value) =>
@@ -108,9 +112,7 @@ export const MatchingQuestionComponent = ({
                     </SidebarMenuItem>
                     {data.type === "letter-zone" && (
                         <span className="px-2 text-center text-orange-500">
-                            Warning: The zone data has been simplified by
-                            &plusmn;360 feet (100 meters) in order for the
-                            browser to not crash.
+                            {t("cards.matching.letterZoneWarning")}
                         </span>
                     )}
                 </>
@@ -119,10 +121,7 @@ export const MatchingQuestionComponent = ({
         case "same-train-line":
             questionSpecific = (
                 <span className="px-2 text-center text-orange-500">
-                    Warning: The train line data is based on OpenStreetMap and
-                    may have fewer train stations than expected. If you are
-                    using this tool, ensure that the other players are also
-                    using this tool.
+                    {t("cards.matching.sameTrainLineWarning")}
                 </span>
             );
             break;
@@ -139,8 +138,7 @@ export const MatchingQuestionComponent = ({
         case "park":
             questionSpecific = (
                 <span className="px-2 text-center text-orange-500">
-                    This question will only influence the map when you click on
-                    a hiding zone in the hiding zone sidebar.
+                    {t("cards.matching.poiHidingZoneNote")}
                 </span>
             );
             break;
@@ -150,9 +148,11 @@ export const MatchingQuestionComponent = ({
                 questionSpecific = (
                     <>
                         <p className="px-2 mb-1 text-center text-orange-500">
-                            To modify the matching{" "}
-                            {data.type === "custom-zone" ? "zones" : "points"},
-                            enable it:
+                            {t(
+                                data.type === "custom-zone"
+                                    ? "cards.matching.modifyZonesEnable"
+                                    : "cards.matching.modifyPointsEnable",
+                            )}
                             <Checkbox
                                 className="mx-1 my-1"
                                 checked={$drawingQuestionKey === questionKey}
@@ -165,7 +165,7 @@ export const MatchingQuestionComponent = ({
                                 }}
                                 disabled={$isLoading}
                             />
-                            and use the buttons at the bottom left of the map.
+                            {t("cards.matching.modifyButtons")}
                         </p>
                         <div className="flex justify-center mb-2">
                             <PresetsDialog
@@ -198,10 +198,10 @@ export const MatchingQuestionComponent = ({
                     if (!pendingCustomType) return;
                     if (pendingCustomType === "custom-zone") {
                         (data as any).geo = undefined;
-                        toast.info("Please draw the zone on the map.");
+                        toast.info(t("cards.matching.toastDrawZone"));
                     } else {
                         (data as any).geo = [];
-                        toast.info("Please draw the points on the map.");
+                        toast.info(t("cards.matching.toastDrawPoints"));
                     }
                     data.type = pendingCustomType;
                     questionModified();
@@ -231,7 +231,7 @@ export const MatchingQuestionComponent = ({
                             (data as any).geo = await findMatchingPlaces(data);
                         } else {
                             (data as any).geo = [];
-                            toast.info("Please draw the points on the map.");
+                            toast.info(t("cards.matching.toastDrawPoints"));
                         }
                     }
                     data.type = pendingCustomType;
@@ -241,24 +241,27 @@ export const MatchingQuestionComponent = ({
             />
             <SidebarMenuItem className={MENU_ITEM_CLASSNAME}>
                 <Select
-                    trigger="Matching Type"
+                    trigger={t("cards.matching.matchingTypeTrigger")}
                     options={Object.fromEntries(
                         matchingQuestionSchema.options
                             .filter((x) => x.description === NO_GROUP)
                             .flatMap((x) =>
                                 determineUnionizedStrings(x.shape.type),
                             )
-                            .map((x) => [(x._def as any).value, x.description]),
+                            .map((x) => [
+                                (x._def as any).value,
+                                td(x.description ?? ""),
+                            ]),
                     )}
                     groups={matchingQuestionSchema.options
                         .filter((x) => x.description !== NO_GROUP)
                         .map((x) => [
-                            x.description,
+                            td(x.description ?? ""),
                             Object.fromEntries(
                                 determineUnionizedStrings(x.shape.type).map(
                                     (x) => [
                                         (x._def as any).value,
-                                        x.description,
+                                        td(x.description ?? ""),
                                     ],
                                 ),
                             ),
@@ -397,7 +400,7 @@ export const MatchingQuestionComponent = ({
                         data.type === "same-length-station" && "text-center",
                     )}
                 >
-                    Result
+                    {t("cards.common.result")}
                 </Label>
                 {data.type === "same-length-station" ? (
                     <ToggleGroup
@@ -431,10 +434,14 @@ export const MatchingQuestionComponent = ({
                         disabled={!!$hiderMode || !data.drag || $isLoading}
                     >
                         <ToggleGroupItem value="shorter">
-                            Shorter
+                            {t("cards.matching.shorter")}
                         </ToggleGroupItem>
-                        <ToggleGroupItem value="same">Same</ToggleGroupItem>
-                        <ToggleGroupItem value="longer">Longer</ToggleGroupItem>
+                        <ToggleGroupItem value="same">
+                            {t("cards.matching.same")}
+                        </ToggleGroupItem>
+                        <ToggleGroupItem value="longer">
+                            {t("cards.matching.longer")}
+                        </ToggleGroupItem>
                     </ToggleGroup>
                 ) : (
                     <ToggleGroup
@@ -451,9 +458,11 @@ export const MatchingQuestionComponent = ({
                         disabled={!!$hiderMode || !data.drag || $isLoading}
                     >
                         <ToggleGroupItem value="different">
-                            Different
+                            {t("cards.matching.different")}
                         </ToggleGroupItem>
-                        <ToggleGroupItem value="same">Same</ToggleGroupItem>
+                        <ToggleGroupItem value="same">
+                            {t("cards.matching.same")}
+                        </ToggleGroupItem>
                     </ToggleGroup>
                 )}
             </div>

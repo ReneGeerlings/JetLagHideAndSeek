@@ -30,6 +30,7 @@ import {
     SidebarGroupLabel,
     SidebarMenu,
 } from "@/components/ui/sidebar-l";
+import { useTranslation } from "@/i18n";
 import { isLoading, questions } from "@/lib/context";
 import { cn } from "@/lib/utils";
 
@@ -54,6 +55,7 @@ export const QuestionCard = ({
     setLocked?: (locked: boolean) => void;
     setCollapsed?: (collapsed: boolean) => void;
 }) => {
+    const t = useTranslation();
     const [isCollapsed, setIsCollapsed] = useState(collapsed ?? false);
     const $questions = useStore(questions);
     const $isLoading = useStore(isLoading);
@@ -102,15 +104,12 @@ export const QuestionCard = ({
                                 <DialogContent>
                                     <DialogHeader>
                                         <DialogTitle className="text-2xl">
-                                            Share this Question!
+                                            {t("questionCard.share.title")}
                                         </DialogTitle>
                                         <DialogDescription>
-                                            Below you can access the JSON
-                                            representing the question. Send this
-                                            to another player for them to copy.
-                                            They can then click &ldquo;Paste
-                                            Question&rdquo; at the bottom of the
-                                            &ldquo;Questions&rdquo; sidebar.
+                                            {t(
+                                                "questionCard.share.description",
+                                            )}
                                         </DialogDescription>
                                     </DialogHeader>
                                     <Button
@@ -134,7 +133,9 @@ export const QuestionCard = ({
                                                 .then(() => {
                                                     if (copyButtonRef.current) {
                                                         copyButtonRef.current.textContent =
-                                                            "Copied!";
+                                                            t(
+                                                                "questionCard.share.copied",
+                                                            );
                                                         copyButtonRef.current.classList.add(
                                                             "bg-green-500",
                                                         );
@@ -143,7 +144,9 @@ export const QuestionCard = ({
                                                                 copyButtonRef.current
                                                             ) {
                                                                 copyButtonRef.current.textContent =
-                                                                    "Copy to Clipboard";
+                                                                    t(
+                                                                        "questionCard.share.copy",
+                                                                    );
                                                                 copyButtonRef.current.classList.remove(
                                                                     "bg-green-500",
                                                                 );
@@ -154,7 +157,9 @@ export const QuestionCard = ({
                                                 .catch(() => {
                                                     if (copyButtonRef.current) {
                                                         copyButtonRef.current.textContent =
-                                                            "Failed to Copy";
+                                                            t(
+                                                                "questionCard.share.failed",
+                                                            );
                                                         copyButtonRef.current.classList.add(
                                                             "bg-red-500",
                                                         );
@@ -163,7 +168,9 @@ export const QuestionCard = ({
                                                                 copyButtonRef.current
                                                             ) {
                                                                 copyButtonRef.current.textContent =
-                                                                    "Copy to Clipboard";
+                                                                    t(
+                                                                        "questionCard.share.copy",
+                                                                    );
                                                                 copyButtonRef.current.classList.remove(
                                                                     "bg-red-500",
                                                                 );
@@ -173,7 +180,7 @@ export const QuestionCard = ({
                                                 });
                                         }}
                                     >
-                                        Copy to Clipboard
+                                        {t("questionCard.share.copy")}
                                     </Button>
                                     <textarea
                                         className="w-full h-[300px] bg-slate-900 text-white rounded-md p-2"
@@ -201,24 +208,26 @@ export const QuestionCard = ({
                                 <AlertDialogContent>
                                     <AlertDialogHeader>
                                         <AlertDialogTitle>
-                                            Are you absolutely sure?
+                                            {t("questionCard.delete.title")}
                                         </AlertDialogTitle>
                                         <AlertDialogDescription>
-                                            This action cannot be undone. This
-                                            will permanently delete the
-                                            question.
+                                            {t(
+                                                "questionCard.delete.description",
+                                            )}
                                         </AlertDialogDescription>
                                     </AlertDialogHeader>
                                     <AlertDialogFooter>
                                         <AlertDialogCancel>
-                                            Cancel
+                                            {t("common.cancel")}
                                         </AlertDialogCancel>
                                         <AlertDialogAction
                                             onClick={() => {
                                                 questions.set([]);
                                             }}
                                         >
-                                            Delete All Questions
+                                            {t(
+                                                "questionCard.delete.confirmAll",
+                                            )}
                                         </AlertDialogAction>
                                         <AlertDialogAction
                                             onClick={() => {
@@ -232,7 +241,9 @@ export const QuestionCard = ({
                                             }}
                                             className="mb-2 sm:mb-0"
                                         >
-                                            Delete Question
+                                            {t(
+                                                "questionCard.delete.confirmOne",
+                                            )}
                                         </AlertDialogAction>
                                     </AlertDialogFooter>
                                 </AlertDialogContent>

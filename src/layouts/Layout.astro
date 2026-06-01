@@ -12,37 +12,49 @@ const { className } = Astro.props;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="nl">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1, viewport-fit=cover"
+        />
         <link
             rel="icon"
             type="image/x-icon"
-            href="https://taibeled.github.io/JetLagHideAndSeek/favicon.ico"
+            href="/favicon.ico"
         />
         <link
             rel="shortcut icon"
             type="image/x-icon"
-            href="https://taibeled.github.io/JetLagHideAndSeek/favicon.ico"
+            href="/favicon.ico"
         />
         <link
             rel="apple-touch-icon"
             sizes="180x180"
-            href="https://taibeled.github.io/JetLagHideAndSeek/apple-touch-icon.png"
+            href="/apple-touch-icon.png"
         />
         <link
             rel="icon"
             type="image/png"
             sizes="32x32"
-            href="https://taibeled.github.io/JetLagHideAndSeek/favicon-32x32.png"
+            href="/favicon-32x32.png"
         />
         <link
             rel="icon"
             type="image/png"
             sizes="16x16"
-            href="https://taibeled.github.io/JetLagHideAndSeek/favicon-16x16.png"
+            href="/favicon-16x16.png"
         />
+        <!-- iPad / iOS PWA tags: enable standalone "home screen" mode -->
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta
+            name="apple-mobile-web-app-status-bar-style"
+            content="black-translucent"
+        />
+        <meta name="apple-mobile-web-app-title" content="Verstoppertje" />
+        <meta name="theme-color" content="#1F2F3F" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -82,16 +94,16 @@ const { className } = Astro.props;
         </script>
         <meta name="generator" content={Astro.generator} />
         <!-- HTML Meta Tags -->
-        <title>Map Generator for Jet Lag The Game: Hide and Seek</title>
+        <title>Jet Lag Verstoppertje Kaartgenerator</title>
         <meta
             name="description"
-            content="Automatically generate maps for Jet Lag The Game: Hide and Seek with ease! Simply name the questions and watch the map eliminate hundreds of possibilities in seconds."
+            content="Genereer automatisch kaarten voor Jet Lag The Game: Hide and Seek. Stel vragen in en zie hoe de kaart honderden mogelijkheden in seconden uitsluit."
         />
 
         <!-- Facebook Meta Tags -->
         <meta
             property="og:url"
-            content="https://taibeled.github.io/JetLagHideAndSeek/"
+            content="https://taibeled.github.io/"
         />
         <meta property="og:type" content="website" />
         <meta
@@ -104,7 +116,7 @@ const { className } = Astro.props;
         />
         <meta
             property="og:image"
-            content="https://taibeled.github.io/JetLagHideAndSeek/JLIcon.png"
+            content="https://taibeled.github.io/JLIcon.png"
         />
 
         <!-- Twitter Meta Tags -->
@@ -112,7 +124,7 @@ const { className } = Astro.props;
         <meta property="twitter:domain" content="taibeled.github.io" />
         <meta
             property="twitter:url"
-            content="https://taibeled.github.io/JetLagHideAndSeek/"
+            content="https://taibeled.github.io/"
         />
         <meta
             name="twitter:title"
@@ -124,7 +136,7 @@ const { className } = Astro.props;
         />
         <meta
             name="twitter:image"
-            content="https://taibeled.github.io/JetLagHideAndSeek/JLIcon.png"
+            content="https://taibeled.github.io/JLIcon.png"
         />
 
         {pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}

@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/sidebar-l";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { UnitSelect } from "@/components/UnitSelect";
+import { useTranslation } from "@/i18n";
 import {
     hiderMode,
     isLoading,
@@ -32,11 +33,12 @@ export const RadiusQuestionComponent = ({
     sub?: string;
     className?: string;
 }) => {
+    const t = useTranslation();
     useStore(triggerLocalRefresh);
     const $hiderMode = useStore(hiderMode);
     const $questions = useStore(questions);
     const $isLoading = useStore(isLoading);
-    const label = `Radius
+    const label = `${t("cards.radius.labelPrefix")}
     ${
         $questions
             .filter((q) => q.id === "radius")
@@ -101,7 +103,7 @@ export const RadiusQuestionComponent = ({
                         $isLoading && "text-muted-foreground",
                     )}
                 >
-                    Result
+                    {t("cards.common.result")}
                 </Label>
                 <ToggleGroup
                     className="grow"
@@ -112,8 +114,12 @@ export const RadiusQuestionComponent = ({
                     }
                     disabled={!!$hiderMode || !data.drag || $isLoading}
                 >
-                    <ToggleGroupItem value="outside">Outside</ToggleGroupItem>
-                    <ToggleGroupItem value="inside">Inside</ToggleGroupItem>
+                    <ToggleGroupItem value="outside">
+                        {t("cards.radius.outside")}
+                    </ToggleGroupItem>
+                    <ToggleGroupItem value="inside">
+                        {t("cards.radius.inside")}
+                    </ToggleGroupItem>
                 </ToggleGroup>
             </div>
         </QuestionCard>

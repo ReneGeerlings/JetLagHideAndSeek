@@ -12,6 +12,8 @@ import {
     SidebarMenuItem,
 } from "@/components/ui/sidebar-l";
 import { UnitSelect } from "@/components/UnitSelect";
+import { useTranslation } from "@/i18n";
+import { useSchemaDescription } from "@/i18n/schema";
 import {
     drawingQuestionKey,
     hiderMode,
@@ -43,10 +45,12 @@ export const TentacleQuestionComponent = ({
     sub?: string;
     className?: string;
 }) => {
+    const t = useTranslation();
+    const td = useSchemaDescription();
     const $questions = useStore(questions);
     const $drawingQuestionKey = useStore(drawingQuestionKey);
     const $isLoading = useStore(isLoading);
-    const label = `Tentacles
+    const label = `${t("cards.tentacles.labelPrefix")}
     ${
         $questions
             .filter((q) => q.id === "tentacles")
@@ -91,26 +95,29 @@ export const TentacleQuestionComponent = ({
             </SidebarMenuItem>
             <SidebarMenuItem className={MENU_ITEM_CLASSNAME}>
                 <Select
-                    trigger="Location Type"
+                    trigger={t("cards.tentacles.locationTypeTrigger")}
                     options={Object.fromEntries(
                         tentacleQuestionSchema.options
                             .filter((x) => x.description === NO_GROUP)
                             .flatMap((x) =>
                                 determineUnionizedStrings(x.shape.locationType),
                             )
-                            .map((x) => [(x._def as any).value, x.description]),
+                            .map((x) => [
+                                (x._def as any).value,
+                                td(x.description ?? ""),
+                            ]),
                     )}
                     groups={Object.fromEntries(
                         tentacleQuestionSchema.options
                             .filter((x) => x.description !== NO_GROUP)
                             .map((x) => [
-                                x.description,
+                                td(x.description ?? ""),
                                 Object.fromEntries(
                                     determineUnionizedStrings(
                                         x.shape.locationType,
                                     ).map((x) => [
                                         (x._def as any).value,
-                                        x.description,
+                                        td(x.description ?? ""),
                                     ]),
                                 ),
                             ]),
@@ -145,7 +152,7 @@ export const TentacleQuestionComponent = ({
             {data.locationType === "custom" && data.drag && (
                 <>
                     <p className="px-2 mb-1 text-center text-orange-500">
-                        To modify tentacle locations, enable it:
+                        {t("cards.tentacles.modifyEnable")}
                         <Checkbox
                             className="mx-1 my-1"
                             checked={$drawingQuestionKey === questionKey}
@@ -158,7 +165,7 @@ export const TentacleQuestionComponent = ({
                             }}
                             disabled={!data.drag || $isLoading}
                         />
-                        and use the buttons at the bottom left of the map.
+                        {t("cards.tentacles.modifyButtons")}
                     </p>
                     <div className="flex justify-center mb-2">
                         <PresetsDialog
@@ -230,6 +237,7 @@ const TentacleLocationSelector = ({
     promise: Promise<any>;
     disabled: boolean;
 }) => {
+    const t = useTranslation();
     useStore(triggerLocalRefresh);
     const $hiderMode = useStore(hiderMode);
     const locations = use(promise);
@@ -279,9 +287,9 @@ const TentacleLocationSelector = ({
 
     return (
         <Select
-            trigger="Location"
+            trigger={t("cards.tentacles.locationTrigger")}
             options={{
-                false: "Not Within",
+                false: t("cards.tentacles.notWithin"),
                 ...mapToObj(filteredFeatures, (feature: any) => [
                     feature.properties.name,
                     feature.properties.name,

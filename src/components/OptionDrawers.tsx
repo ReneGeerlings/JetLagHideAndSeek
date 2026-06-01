@@ -9,6 +9,8 @@ import {
     DrawerTitle,
     DrawerTrigger,
 } from "@/components/ui/drawer";
+import { language, useTranslation } from "@/i18n";
+import { formatZodError } from "@/i18n/zod-errors";
 import {
     additionalMapGeoLocations,
     allowGooglePlusCodes,
@@ -44,6 +46,7 @@ import {
     triggerLocalRefresh,
     useCustomStations,
 } from "@/lib/context";
+import { logger } from "@/lib/logger";
 import {
     cn,
     compress,
@@ -54,6 +57,7 @@ import {
 } from "@/lib/utils";
 import { questionsSchema } from "@/maps/schema";
 
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { LatitudeLongitude } from "./LatLngPicker";
 import { Button } from "./ui/button";
 import { Checkbox } from "./ui/checkbox";
@@ -73,6 +77,7 @@ const HIDING_ZONE_COMPRESSED_URL_PARAM = "hzc";
 const PASTEBIN_URL_PARAM = "pb";
 
 export const OptionDrawers = ({ className }: { className?: string }) => {
+    const t = useTranslation();
     useStore(triggerLocalRefresh);
     const $defaultCustomQuestions = useStore(defaultCustomQuestions);
     const $allowGooglePlusCodes = useStore(allowGooglePlusCodes);
@@ -123,7 +128,11 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                 // Remove hiding zone parameter after initial load
                 window.history.replaceState({}, "", window.location.pathname);
             } catch (e) {
-                toast.error(`Invalid hiding zone settings: ${e}`);
+                toast.error(
+                    t("optionDrawers.toastInvalidHidingZone", {
+                        error: formatZodError(e, language.get()),
+                    }),
+                );
             }
         } else if (hidingZoneCompressed !== null) {
             // Modern compressed format
@@ -137,7 +146,11 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                         window.location.pathname,
                     );
                 } catch (e) {
-                    toast.error(`Invalid hiding zone settings: ${e}`);
+                    toast.error(
+                        t("optionDrawers.toastInvalidHidingZone", {
+                            error: formatZodError(e, language.get()),
+                        }),
+                    );
                 }
             });
         } else if (pastebinId !== null) {
@@ -151,17 +164,21 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                             "",
                             window.location.pathname,
                         );
-                        toast.success(
-                            "Successfully loaded data from Pastebin link!",
-                        );
+                        toast.success(t("optionDrawers.toastHidingZoneLoaded"));
                     } catch (e) {
-                        toast.error(`Invalid data from Pastebin: ${e}`);
+                        toast.error(
+                            t("optionDrawers.toastInvalidPastebinData", {
+                                error: formatZodError(e, language.get()),
+                            }),
+                        );
                     }
                 })
                 .catch((error) => {
-                    console.error("Failed to fetch from Pastebin:", error);
+                    logger.error("Failed to fetch from Pastebin:", error);
                     toast.error(
-                        `Failed to load from Pastebin: ${error.message}`,
+                        t("optionDrawers.toastPastebinFetchFailed", {
+                            error: error.message,
+                        }),
                     );
                 });
         }
@@ -225,10 +242,14 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                         });
                     if (normalized.length > 0) {
                         customPresets.set(normalized);
-                        toast.info(`Imported ${normalized.length} preset(s)`);
+                        toast.info(
+                            t("optionDrawers.toastPresetsImported", {
+                                count: normalized.length,
+                            }),
+                        );
                     }
                 } catch (err) {
-                    console.warn("Failed to import presets", err);
+                    logger.warn("Failed to import presets", err);
                 }
             }
 
@@ -268,11 +289,15 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                 permanentOverlay.set(null);
             }
 
-            toast.success("Hiding zone loaded successfully", {
+            toast.success(t("optionDrawers.toastHidingZoneLoaded"), {
                 autoClose: 2000,
             });
         } catch (e) {
-            toast.error(`Invalid hiding zone settings: ${e}`);
+            toast.error(
+                t("optionDrawers.toastInvalidHidingZone", {
+                    error: formatZodError(e, language.get()),
+                }),
+            );
         }
     };
 
@@ -291,8 +316,8 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                     try {
                         compressedData = await compress(hidingZoneString);
                     } catch (error) {
-                        console.error("Compression failed:", error);
-                        toast.error(`Failed to prepare data for sharing`);
+                        logger.error("Compression failed:", error);
+                        toast.error(t("optionDrawers.toastShareFailed"));
                         return;
                     }
 
@@ -301,13 +326,13 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
 
                     if ($alwaysUsePastebin || shareUrl.length > 2000) {
                         if (!$pastebinApiKey) {
-                            toast.error(
-                                "Data is too large for a URL or Pastebin is forced. Please enter a Pastebin API key in Options to share via Pastebin.",
-                            );
+                            toast.error(t("optionDrawers.toastShareTooLarge"));
                             return;
                         }
                         try {
-                            toast.info("Data is being shared via Pastebin...");
+                            toast.info(
+                                t("optionDrawers.toastSharingViaPastebin"),
+                            );
                             const pastebinUrl = await uploadToPastebin(
                                 $pastebinApiKey,
                                 hidingZoneString,
@@ -317,40 +342,37 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                             );
                             shareUrl = `${baseUrl}?${PASTEBIN_URL_PARAM}=${pasteId}`;
                             toast.success(
-                                "Successfully uploaded to Pastebin! URL is ready to be shared.",
+                                t("optionDrawers.toastPastebinSuccess"),
                             );
                         } catch (error) {
-                            console.error("Pastebin upload failed:", error);
-                            toast.error(
-                                `Pastebin upload failed. Please check your API key and try again.`,
-                            );
+                            logger.error("Pastebin upload failed:", error);
+                            toast.error(t("optionDrawers.toastPastebinFailed"));
                             return;
                         }
                     }
 
                     // Show platform native share sheet if possible
                     await shareOrFallback(shareUrl).then((result) => {
-                        console.log(`result ${result}`);
+                        logger.log(`result ${result}`);
                         if (result === false) {
                             return toast.error(
-                                `Clipboard not supported. Try manually copying/pasting: ${shareUrl}`,
+                                t("optionDrawers.toastShareClipboardFallback", {
+                                    url: shareUrl,
+                                }),
                                 { className: "p-0 w-[1000px]" },
                             );
                         }
 
                         if (result === "clipboard") {
-                            toast.success(
-                                "Hiding zone URL copied to clipboard",
-                                {
-                                    autoClose: 2000,
-                                },
-                            );
+                            toast.success(t("optionDrawers.toastShareCopied"), {
+                                autoClose: 2000,
+                            });
                         }
                     });
                 }}
                 data-tutorial-id="share-questions-button"
             >
-                Share
+                {t("optionDrawers.share")}
             </Button>
             <Button
                 className="w-24 shadow-md"
@@ -358,7 +380,7 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                     showTutorial.set(true);
                 }}
             >
-                Tutorial
+                {t("optionDrawers.tutorial")}
             </Button>
             <Drawer open={isOptionsOpen} onOpenChange={setOptionsOpen}>
                 <DrawerTrigger className="w-24" asChild>
@@ -366,65 +388,79 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                         className="w-24 shadow-md"
                         data-tutorial-id="option-questions-button"
                     >
-                        Options
+                        {t("optionDrawers.options")}
                     </Button>
                 </DrawerTrigger>
                 <DrawerContent>
                     <div className="flex flex-col items-center gap-4 mb-4">
                         <DrawerHeader>
                             <DrawerTitle className="text-4xl font-semibold font-poppins">
-                                Options
+                                {t("optionDrawers.title")}
                             </DrawerTitle>
                         </DrawerHeader>
                         <div className="overflow-y-scroll max-h-[40vh] flex flex-col items-center gap-4 max-w-[1000px] px-12">
+                            <LanguageSwitcher />
+                            <Separator className="bg-slate-300 w-[280px]" />
                             <div className="flex flex-row max-[330px]:flex-col gap-4">
                                 <Button
                                     onClick={() => {
                                         if (!navigator || !navigator.clipboard)
                                             return toast.error(
-                                                "Clipboard not supported",
+                                                t(
+                                                    "optionDrawers.toastClipboardUnsupported",
+                                                ),
                                             );
                                         navigator.clipboard.writeText(
                                             JSON.stringify($hidingZone),
                                         );
                                         toast.success(
-                                            "Hiding zone copied successfully",
+                                            t(
+                                                "optionDrawers.toastHidingZoneCopied",
+                                            ),
                                             {
                                                 autoClose: 2000,
                                             },
                                         );
                                     }}
                                 >
-                                    Copy Hiding Zone
+                                    {t("optionDrawers.copyHidingZone")}
                                 </Button>
                                 <Button
                                     onClick={() => {
                                         if (!navigator || !navigator.clipboard)
                                             return toast.error(
-                                                "Clipboard not supported",
+                                                t(
+                                                    "optionDrawers.toastClipboardUnsupported",
+                                                ),
                                             );
                                         navigator.clipboard
                                             .readText()
                                             .then(loadHidingZone);
                                     }}
                                 >
-                                    Paste Hiding Zone
+                                    {t("optionDrawers.pasteHidingZone")}
                                 </Button>
                             </div>
                             <Separator className="bg-slate-300 w-[280px]" />
-                            <Label>Default Unit</Label>
+                            <Label>{t("optionDrawers.defaultUnit")}</Label>
                             <UnitSelect
                                 unit={$defaultUnit}
                                 onChange={defaultUnit.set}
                             />
                             <Separator className="bg-slate-300 w-[280px]" />
-                            <Label>New Custom Question Defaults</Label>
+                            <Label>
+                                {t("optionDrawers.newCustomQuestionDefaults")}
+                            </Label>
                             <Select
                                 trigger="New custom default"
                                 options={{
-                                    ask: "Ask each time",
-                                    blank: "Start blank",
-                                    prefill: "Copy from current",
+                                    ask: t("optionDrawers.defaultsAskEachTime"),
+                                    blank: t(
+                                        "optionDrawers.defaultsStartBlank",
+                                    ),
+                                    prefill: t(
+                                        "optionDrawers.defaultsCopyFromCurrent",
+                                    ),
                                 }}
                                 value={$customInitPref}
                                 onValueChange={(v) =>
@@ -432,7 +468,7 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                                 }
                             />
                             <Separator className="bg-slate-300 w-[280px]" />
-                            <Label>Base map style</Label>
+                            <Label>{t("optionDrawers.baseMapStyle")}</Label>
                             <Select
                                 trigger="Base map style"
                                 options={{
@@ -450,7 +486,9 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                                 }
                             />
                             <div className="flex flex-col items-center gap-2">
-                                <Label>Thunderforest API Key</Label>
+                                <Label>
+                                    {t("optionDrawers.thunderforestApiKey")}
+                                </Label>
                                 <Input
                                     type="text"
                                     value={$thunderforestApiKey}
@@ -458,7 +496,9 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                                     onChange={(e) =>
                                         thunderforestApiKey.set(e.target.value)
                                     }
-                                    placeholder="Enter your Thunderforest API key"
+                                    placeholder={t(
+                                        "optionDrawers.thunderforestPlaceholder",
+                                    )}
                                 />
                                 <p className="text-xs text-gray-500">
                                     Needed for Thunderforest map styles. Create
@@ -476,7 +516,9 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                             </div>
                             <Separator className="bg-slate-300 w-[280px]" />
                             <div className="flex flex-col items-center gap-2">
-                                <Label>Pastebin API Key</Label>
+                                <Label>
+                                    {t("optionDrawers.pastebinApiKey")}
+                                </Label>
                                 <Input
                                     type="text"
                                     value={$pastebinApiKey}
@@ -484,7 +526,9 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                                     onChange={(e) =>
                                         pastebinApiKey.set(e.target.value)
                                     }
-                                    placeholder="Enter your Pastebin API key"
+                                    placeholder={t(
+                                        "optionDrawers.pastebinPlaceholder",
+                                    )}
                                 />
                                 <p className="text-xs text-gray-500">
                                     Needed for sharing large game data. Create a
@@ -501,18 +545,22 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                                 </p>
                             </div>
                             <Separator className="bg-slate-300 w-[280px]" />
-                            <Label>Permanent Map Overlay</Label>
+                            <Label>
+                                {t("optionDrawers.permanentMapOverlay")}
+                            </Label>
                             <div className="flex flex-row max-[330px]:flex-col gap-4">
                                 <Button
                                     onClick={() => permanentOverlay.set(null)}
                                 >
-                                    Remove
+                                    {t("common.remove")}
                                 </Button>
                                 <Button
                                     onClick={async () => {
                                         if (!navigator || !navigator.clipboard)
                                             return toast.error(
-                                                "Clipboard not supported",
+                                                t(
+                                                    "optionDrawers.toastClipboardUnsupported",
+                                                ),
                                             );
 
                                         try {
@@ -528,13 +576,13 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                                         }
                                     }}
                                 >
-                                    Paste GeoJSON
+                                    {t("optionDrawers.pasteGeoJSON")}
                                 </Button>
                             </div>
                             <Separator className="bg-slate-300 w-[280px]" />
                             <div className="flex flex-row items-center gap-2">
                                 <label className="text-2xl font-semibold font-poppins">
-                                    Animate map movements?
+                                    {t("optionDrawers.animateMapMovements")}
                                 </label>
                                 <Checkbox
                                     checked={$animateMapMovements}
@@ -547,7 +595,7 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                             </div>
                             <div className="flex flex-row items-center gap-2">
                                 <label className="text-2xl font-semibold font-poppins">
-                                    Force Pastebin for sharing?
+                                    {t("optionDrawers.forcePastebin")}
                                 </label>
                                 <Checkbox
                                     checked={$alwaysUsePastebin}
@@ -560,7 +608,7 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                             </div>
                             <div className="flex flex-row items-center gap-2">
                                 <label className="text-2xl font-semibold font-poppins">
-                                    Enable planning mode?
+                                    {t("optionDrawers.enablePlanningMode")}
                                 </label>
                                 <Checkbox
                                     checked={$planningMode}
@@ -588,7 +636,7 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                             </div>
                             <div className="flex flex-row items-center gap-2">
                                 <label className="text-2xl font-semibold font-poppins">
-                                    Auto save?
+                                    {t("optionDrawers.autoSave")}
                                 </label>
                                 <Checkbox
                                     checked={$autoSave}
@@ -599,7 +647,7 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                             </div>
                             <div className="flex flex-row items-center gap-2">
                                 <label className="text-2xl font-semibold font-poppins">
-                                    Auto zoom?
+                                    {t("optionDrawers.autoZoom")}
                                 </label>
                                 <Checkbox
                                     checked={$autoZoom}
@@ -610,7 +658,7 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                             </div>
                             <div className="flex flex-row items-center gap-2">
                                 <label className="text-2xl font-semibold font-poppins">
-                                    Follow Me (GPS)?
+                                    {t("optionDrawers.followMe")}
                                 </label>
                                 <Checkbox
                                     checked={$followMe}
@@ -621,7 +669,9 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                             </div>
                             <div className="flex flex-row items-center gap-2">
                                 <label className="text-2xl font-semibold font-poppins">
-                                    Default to custom questions?
+                                    {t(
+                                        "optionDrawers.defaultToCustomQuestions",
+                                    )}
                                 </label>
                                 <Checkbox
                                     checked={$defaultCustomQuestions}
@@ -634,7 +684,7 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                             </div>
                             <div className="flex flex-row items-center gap-2">
                                 <label className="text-2xl font-semibold font-poppins">
-                                    Allow Google Plus codes?
+                                    {t("optionDrawers.allowGooglePlusCodes")}
                                 </label>
                                 <Checkbox
                                     checked={$allowGooglePlusCodes}
@@ -647,7 +697,7 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                             </div>
                             <div className="flex flex-row items-center gap-2">
                                 <label className="text-2xl font-semibold font-poppins">
-                                    Hider mode?
+                                    {t("optionDrawers.hiderMode")}
                                 </label>
                                 <Checkbox
                                     checked={!!$hiderMode}
@@ -698,7 +748,7 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                                                 );
                                             }
                                         }}
-                                        label="Hider Location"
+                                        label={t("optionDrawers.hiderLocation")}
                                     />
                                     {!autoSave && (
                                         <SidebarMenuItem>
@@ -706,7 +756,7 @@ export const OptionDrawers = ({ className }: { className?: string }) => {
                                                 className="bg-blue-600 p-2 rounded-md font-semibold font-poppins transition-shadow duration-500 mt-2"
                                                 onClick={save}
                                             >
-                                                Save
+                                                {t("common.save")}
                                             </SidebarMenuButton>
                                         </SidebarMenuItem>
                                     )}

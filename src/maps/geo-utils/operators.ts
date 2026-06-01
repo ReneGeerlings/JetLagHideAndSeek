@@ -1,9 +1,10 @@
-import * as units from "@arcgis/core/core/units.js";
-import * as geodesicBufferOperator from "@arcgis/core/geometry/operators/geodesicBufferOperator.js";
-import * as geodeticDistanceOperator from "@arcgis/core/geometry/operators/geodeticDistanceOperator.js";
-import Point from "@arcgis/core/geometry/Point.js";
-import * as geometryJsonUtils from "@arcgis/core/geometry/support/jsonUtils.js";
-import * as unionTypes from "@arcgis/core/unionTypes.js";
+// Type-only imports — verdwijnen tijdens build, leveren géén runtime kosten
+// op. De daadwerkelijke ArcGIS-modules (~1,2 MB) worden lazy ingeladen via
+// loadArcgis() hieronder. Daarmee wordt de eerste paint van de kaart een
+// stuk lichter; de modules komen pas binnen op het moment dat een speler
+// daadwerkelijk een radius/thermometer/tentacles/measuring-vraag toevoegt.
+import type * as units from "@arcgis/core/core/units.js";
+import type * as unionTypes from "@arcgis/core/unionTypes.js";
 import { arcgisToGeoJSON, geojsonToArcGIS } from "@terraformer/arcgis";
 import * as turf from "@turf/turf";
 import type {
@@ -16,6 +17,34 @@ import type {
 import { BLANK_GEOJSON } from "@/maps/api";
 
 export { geoSpatialVoronoi } from "@/maps/geo-utils/voronoi";
+
+type ArcgisModules = {
+    Point: typeof import("@arcgis/core/geometry/Point.js").default;
+    geometryJsonUtils: typeof import("@arcgis/core/geometry/support/jsonUtils.js");
+    geodesicBufferOperator: typeof import("@arcgis/core/geometry/operators/geodesicBufferOperator.js");
+    geodeticDistanceOperator: typeof import("@arcgis/core/geometry/operators/geodeticDistanceOperator.js");
+};
+
+let arcgisModulesPromise: Promise<ArcgisModules> | null = null;
+
+const loadArcgis = (): Promise<ArcgisModules> => {
+    if (!arcgisModulesPromise) {
+        arcgisModulesPromise = Promise.all([
+            import("@arcgis/core/geometry/Point.js"),
+            import("@arcgis/core/geometry/support/jsonUtils.js"),
+            import("@arcgis/core/geometry/operators/geodesicBufferOperator.js"),
+            import(
+                "@arcgis/core/geometry/operators/geodeticDistanceOperator.js"
+            ),
+        ]).then(([P, J, GB, GD]) => ({
+            Point: P.default,
+            geometryJsonUtils: J,
+            geodesicBufferOperator: GB,
+            geodeticDistanceOperator: GD,
+        }));
+    }
+    return arcgisModulesPromise;
+};
 
 export const safeUnion = (input: FeatureCollection<Polygon | MultiPolygon>) => {
     if (input.features.length === 1) return input.features[0];
@@ -62,11 +91,13 @@ export const modifyMapData = (
 
 const DEFAULT_BUFFER_UNIT = "miles";
 
-export const arcBuffer = (
+export const arcBuffer = async (
     geometry: FeatureCollection,
     distance: number,
     unit: units.LengthUnit & turf.Units = DEFAULT_BUFFER_UNIT,
 ) => {
+    const { geometryJsonUtils } = await loadArcgis();
+
     const arcgisGeometry = geometry.features.map((x) =>
         geometryJsonUtils.fromJSON(geojsonToArcGIS(x.geometry)),
     ) as unionTypes.GeometryUnion[];
@@ -79,6 +110,7 @@ const innateArcBuffer = async (
     distance: number,
     unit: units.LengthUnit & turf.Units = DEFAULT_BUFFER_UNIT,
 ) => {
+    const { geodesicBufferOperator } = await loadArcgis();
     await geodesicBufferOperator.load();
 
     const bufferedGeometry = geodesicBufferOperator.executeMany(
@@ -103,6 +135,9 @@ export const arcBufferToPoint = async (
     lat: number,
     lng: number,
 ) => {
+    const { Point, geometryJsonUtils, geodeticDistanceOperator } =
+        await loadArcgis();
+
     const point = new Point({
         latitude: lat,
         longitude: lng,

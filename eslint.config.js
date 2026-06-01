@@ -38,7 +38,11 @@ export default [
                 },
             ],
             "react/react-in-jsx-scope": "off",
-            "@typescript-eslint/no-explicit-any": "off", // Would be great to remove all `any` types...
+            // E2 lock-in: 'warn' i.p.v. 'off' zodat nieuwe any's zichtbaar
+            // worden zonder de ~160 bestaande te markeren. De CI-grens hieronder
+            // (via --max-warnings in package.json) voorkomt dat het er meer
+            // worden — pas die naar beneden bij elke nette opruim-actie.
+            "@typescript-eslint/no-explicit-any": "warn",
             "simple-import-sort/imports": "error",
             "simple-import-sort/exports": "error",
         },

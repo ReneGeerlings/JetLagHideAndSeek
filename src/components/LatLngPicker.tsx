@@ -12,6 +12,7 @@ import { toast } from "react-toastify";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useTranslation } from "@/i18n";
 import { allowGooglePlusCodes, isLoading } from "@/lib/context";
 import { cn } from "@/lib/utils";
 import { determineName, geocode, ICON_COLORS } from "@/maps/api";
@@ -101,6 +102,7 @@ const LatLngEditForm = ({
     onChange: (lat: number | null, lng: number | null) => void;
     disabled?: boolean;
 }) => {
+    const t = useTranslation();
     const [inputValue, setInputValue] = useState("");
     const debouncedValue = useDebounce<string>(inputValue);
     const [results, setResults] = useState<any[]>([]);
@@ -112,10 +114,12 @@ const LatLngEditForm = ({
     useEffect(() => {
         if (debouncedValue === "") {
             setResults([]);
+            setError(false);
             return;
         } else {
             setLoading(true);
             setResults([]);
+            setError(false);
             geocode(debouncedValue, "en", false)
                 .then((x) => {
                     setResults(x);
@@ -147,17 +151,17 @@ const LatLngEditForm = ({
         <>
             <Command shouldFilter={false}>
                 <CommandInput
-                    placeholder="Search place..."
+                    placeholder={t("latLngPicker.searchPlaceholder")}
                     onKeyUp={(x) => setInputValue(x.currentTarget.value)}
                     disabled={disabled}
                 />
                 <CommandList>
                     <CommandEmpty>
                         {loading
-                            ? "Loading..."
+                            ? t("common.loading")
                             : error
-                              ? "Error loading places."
-                              : "No locations found."}
+                              ? t("latLngPicker.errorLoadingPlaces")
+                              : t("latLngPicker.noLocationsFound")}
                     </CommandEmpty>
                     <CommandGroup>
                         {results.map((result) => (
@@ -182,9 +186,13 @@ const LatLngEditForm = ({
                 </CommandList>
             </Command>
             <div className="flex gap-2 items-center">
-                <Label className="min-w-16">Latitude</Label>
+                <Label className="min-w-16">
+                    {t("latLngPicker.latitudeLabel")}
+                </Label>
                 <Input
                     type="number"
+                    inputMode="decimal"
+                    step="any"
                     value={Math.abs(latitude)}
                     min={0}
                     max={90}
@@ -207,9 +215,13 @@ const LatLngEditForm = ({
                 </Button>
             </div>
             <div className="flex gap-2 items-center">
-                <Label className="min-w-16">Longitude</Label>
+                <Label className="min-w-16">
+                    {t("latLngPicker.longitudeLabel")}
+                </Label>
                 <Input
                     type="number"
+                    inputMode="decimal"
+                    step="any"
                     value={Math.abs(longitude)}
                     min={0}
                     max={180}
@@ -237,12 +249,14 @@ const LatLngEditForm = ({
                     <Separator />
 
                     <div className="flex gap-2 items-center">
-                        <Label className="min-w-32">Google Plus Code</Label>
+                        <Label className="min-w-32">
+                            {t("latLngPicker.googlePlusCodeLabel")}
+                        </Label>
                         <Input
                             type="text"
                             disabled={disabled}
                             ref={googlePlusCodesRef}
-                            placeholder="i.e., Q9CM+3P Narita, Chiba, Japan"
+                            placeholder={t("latLngPicker.plusCodePlaceholder")}
                         />
                         <Button
                             variant="secondary"
@@ -258,7 +272,9 @@ const LatLngEditForm = ({
                                 let codeBase = code.split(" ")[0];
 
                                 if (!olc.isValid(codeBase)) {
-                                    toast.error("Invalid Google Plus code");
+                                    toast.error(
+                                        t("latLngPicker.toastInvalidPlusCode"),
+                                    );
                                     return;
                                 }
 
@@ -275,7 +291,9 @@ const LatLngEditForm = ({
 
                                     if (geo.length === 0) {
                                         toast.error(
-                                            "Could not resolve location for short code",
+                                            t(
+                                                "latLngPicker.toastPlusCodeCouldNotResolve",
+                                            ),
                                         );
                                         setLoading(false);
                                         return;
@@ -301,7 +319,7 @@ const LatLngEditForm = ({
                             }}
                             disabled={disabled}
                         >
-                            Import
+                            {t("latLngPicker.importButton")}
                         </Button>
                     </div>
                 </>
@@ -314,7 +332,7 @@ export const LatitudeLongitude = ({
     latitude,
     longitude,
     onChange,
-    label = "Location",
+    label,
     colorName,
     children,
     disabled,
@@ -330,7 +348,9 @@ export const LatitudeLongitude = ({
     disabled?: boolean;
     inlineEdit?: boolean;
 }) => {
+    const t = useTranslation();
     const $isLoading = useStore(isLoading);
+    const resolvedLabel = label ?? t("latLngPicker.defaultLabel");
 
     const color = colorName ? ICON_COLORS[colorName] : "transparent";
 
@@ -356,7 +376,7 @@ export const LatitudeLongitude = ({
                         }}
                     >
                         <div className="text-2xl font-semibold font-poppins">
-                            {label}
+                            {resolvedLabel}
                         </div>
                         <div className="tabular-nums text-right text-sm font-oxygen">
                             <div>
@@ -394,7 +414,7 @@ export const LatitudeLongitude = ({
                                 <Button
                                     disabled={disabled}
                                     variant="outline"
-                                    title="Edit coordinates"
+                                    title={t("latLngPicker.editCoordinates")}
                                 >
                                     <EditIcon />
                                 </Button>
@@ -402,7 +422,9 @@ export const LatitudeLongitude = ({
                             <DialogContent>
                                 <DialogHeader>
                                     <DialogTitle className="text-2xl">
-                                        Update {label}
+                                        {t("latLngPicker.updateLabel", {
+                                            label: resolvedLabel,
+                                        })}
                                     </DialogTitle>
                                 </DialogHeader>
                                 <LatLngEditForm
@@ -413,7 +435,9 @@ export const LatitudeLongitude = ({
                                 />
                                 <DialogFooter>
                                     <DialogClose asChild>
-                                        <Button>Done</Button>
+                                        <Button>
+                                            {t("latLngPicker.doneButton")}
+                                        </Button>
                                     </DialogClose>
                                 </DialogFooter>
                             </DialogContent>
@@ -429,8 +453,14 @@ export const LatitudeLongitude = ({
                         <Button
                             variant="outline"
                             onClick={() => {
-                                if (!navigator || !navigator.geolocation)
-                                    return alert("Geolocation not supported");
+                                if (!navigator || !navigator.geolocation) {
+                                    toast.error(
+                                        t(
+                                            "latLngPicker.toastGeolocationUnsupported",
+                                        ),
+                                    );
+                                    return;
+                                }
 
                                 isLoading.set(true);
 
@@ -457,15 +487,21 @@ export const LatitudeLongitude = ({
                                             isLoading.set(false);
                                         }),
                                     {
-                                        pending: "Fetching location",
-                                        success: "Location fetched",
-                                        error: "Could not fetch location",
+                                        pending: t(
+                                            "latLngPicker.toastFetchingLocation",
+                                        ),
+                                        success: t(
+                                            "latLngPicker.toastLocationFetched",
+                                        ),
+                                        error: t(
+                                            "latLngPicker.toastLocationFetchFailed",
+                                        ),
                                     },
                                     { autoClose: 500 },
                                 );
                             }}
                             disabled={disabled}
-                            title="Set to current location"
+                            title={t("latLngPicker.useCurrentLocation")}
                         >
                             <LocateIcon />
                         </Button>
@@ -474,7 +510,9 @@ export const LatitudeLongitude = ({
                             onClick={() => {
                                 if (!navigator || !navigator.clipboard) {
                                     toast.error(
-                                        "Clipboard API not supported in your browser",
+                                        t(
+                                            "latLngPicker.toastClipboardUnsupported",
+                                        ),
                                     );
                                     return;
                                 }
@@ -505,16 +543,21 @@ export const LatitudeLongitude = ({
                                             isLoading.set(false);
                                         }),
                                     {
-                                        pending: "Reading from clipboard",
-                                        success:
-                                            "Coordinates set from clipboard",
-                                        error: "No valid coordinates found in clipboard",
+                                        pending: t(
+                                            "latLngPicker.toastReadingClipboard",
+                                        ),
+                                        success: t(
+                                            "latLngPicker.toastCoordinatesSet",
+                                        ),
+                                        error: t(
+                                            "latLngPicker.toastNoCoordinatesInClipboard",
+                                        ),
                                     },
                                     { autoClose: 1000 },
                                 );
                             }}
                             disabled={disabled}
-                            title="Paste coordinates from clipboard"
+                            title={t("latLngPicker.pasteCoordinates")}
                         >
                             <ClipboardPasteIcon />
                         </Button>
@@ -523,7 +566,9 @@ export const LatitudeLongitude = ({
                             onClick={() => {
                                 if (!navigator || !navigator.clipboard) {
                                     toast.error(
-                                        "Clipboard API not supported in your browser",
+                                        t(
+                                            "latLngPicker.toastClipboardUnsupported",
+                                        ),
                                     );
                                     return;
                                 }
@@ -535,14 +580,20 @@ export const LatitudeLongitude = ({
                                         )}°${longitude > 0 ? "E" : "W"}`,
                                     ),
                                     {
-                                        pending: "Writing to clipboard...",
-                                        success: "Coordinates copied!",
-                                        error: "An error occurred while copying",
+                                        pending: t(
+                                            "latLngPicker.toastWritingCoordinates",
+                                        ),
+                                        success: t(
+                                            "latLngPicker.toastCoordinatesCopied",
+                                        ),
+                                        error: t(
+                                            "latLngPicker.toastCoordinatesCopyError",
+                                        ),
                                     },
                                     { autoClose: 1000 },
                                 );
                             }}
-                            title="Copy coordinates to clipboard"
+                            title={t("latLngPicker.copyCoordinates")}
                         >
                             <ClipboardCopyIcon />
                         </Button>

@@ -1,6 +1,8 @@
 import _ from "lodash";
 import { toast } from "react-toastify";
 
+import { logger } from "@/lib/logger";
+
 import { CacheType } from "./types";
 
 const determineQuestionCache = _.memoize(() => caches.open(CacheType.CACHE));
@@ -71,7 +73,7 @@ export const cacheFetch = async (
             inFlightFetches.delete(inflightKey);
         }
     } catch (e) {
-        console.log(e); // Probably a caches not supported error
+        logger.log(e); // Probably a caches not supported error
 
         return fetch(url);
     }
@@ -86,6 +88,6 @@ export const clearCache = async (cacheType: CacheType = CacheType.CACHE) => {
             });
         });
     } catch (e) {
-        console.log(e); // Probably a caches not supported error
+        logger.log(e); // Probably a caches not supported error
     }
 };

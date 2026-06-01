@@ -4,6 +4,7 @@ import { distance, point } from "@turf/turf";
 import { LatitudeLongitude } from "@/components/LatLngPicker";
 import { Label } from "@/components/ui/label";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
+import { useTranslation } from "@/i18n";
 import { defaultUnit } from "@/lib/context";
 import {
     hiderMode,
@@ -28,6 +29,7 @@ export const ThermometerQuestionComponent = ({
     sub?: string;
     className?: string;
 }) => {
+    const t = useTranslation();
     useStore(triggerLocalRefresh);
     const $hiderMode = useStore(hiderMode);
     const $questions = useStore(questions);
@@ -36,7 +38,7 @@ export const ThermometerQuestionComponent = ({
     const $defaultUnit = useStore(defaultUnit);
     const DISTANCE_UNIT = $defaultUnit ?? "miles";
 
-    const label = `Thermometer
+    const label = `${t("cards.thermometer.labelPrefix")}
     ${
         $questions
             .filter((q) => q.id === "thermometer")
@@ -60,10 +62,10 @@ export const ThermometerQuestionComponent = ({
 
     const unitLabel =
         DISTANCE_UNIT === "meters"
-            ? "Meters"
+            ? t("cards.thermometer.unitMeters")
             : DISTANCE_UNIT === "kilometers"
-              ? "KM"
-              : "Miles";
+              ? t("cards.thermometer.unitKm")
+              : t("cards.thermometer.unitMiles");
 
     return (
         <QuestionCard
@@ -81,7 +83,7 @@ export const ThermometerQuestionComponent = ({
             <LatitudeLongitude
                 latitude={data.latA}
                 longitude={data.lngA}
-                label="Start"
+                label={t("cards.thermometer.start")}
                 colorName={data.colorA}
                 onChange={(lat, lng) => {
                     if (lat !== null) data.latA = lat;
@@ -94,7 +96,7 @@ export const ThermometerQuestionComponent = ({
             <LatitudeLongitude
                 latitude={data.latB}
                 longitude={data.lngB}
-                label="End"
+                label={t("cards.thermometer.end")}
                 colorName={data.colorB}
                 onChange={(lat, lng) => {
                     if (lat !== null) data.latB = lat;
@@ -106,7 +108,7 @@ export const ThermometerQuestionComponent = ({
 
             {distanceValue !== null && (
                 <div className="px-2 text-sm text-muted-foreground">
-                    Distance:{" "}
+                    {t("cards.thermometer.distance")}{" "}
                     <span className="font-medium text-foreground">
                         {distanceValue.toFixed(3)} {unitLabel}
                     </span>
@@ -120,7 +122,7 @@ export const ThermometerQuestionComponent = ({
                         $isLoading && "text-muted-foreground",
                     )}
                 >
-                    Result
+                    {t("cards.common.result")}
                 </Label>
                 <ToggleGroup
                     className="grow"
@@ -132,9 +134,11 @@ export const ThermometerQuestionComponent = ({
                     disabled={!!$hiderMode || !data.drag || $isLoading}
                 >
                     <ToggleGroupItem color="red" value="colder">
-                        Colder
+                        {t("cards.thermometer.colder")}
                     </ToggleGroupItem>
-                    <ToggleGroupItem value="warmer">Warmer</ToggleGroupItem>
+                    <ToggleGroupItem value="warmer">
+                        {t("cards.thermometer.warmer")}
+                    </ToggleGroupItem>
                 </ToggleGroup>
             </div>
         </QuestionCard>

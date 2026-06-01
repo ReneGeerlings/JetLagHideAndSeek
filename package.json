@@ -7,7 +7,7 @@
         "build": "astro build",
         "preview": "astro preview",
         "astro": "astro",
-        "lint": "eslint --fix src && prettier . --write",
+        "lint": "eslint --fix --max-warnings 170 src && prettier . --write",
         "test": "vitest"
     },
     "dependencies": {
